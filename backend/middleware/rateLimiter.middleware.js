@@ -14,7 +14,7 @@ const scanLimiter = rateLimit({
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // Limit each IP to 5 auth requests per windowMs to prevent brute force
+  max: process.env.NODE_ENV === 'development' ? 1000 : 20, // 1000 in dev, 20 in prod
   message: { success: false, error: 'Too many auth attempts from this IP, please try again after 15 minutes' }
 });
 

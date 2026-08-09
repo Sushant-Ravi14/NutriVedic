@@ -27,6 +27,35 @@ export const DietPlan = () => {
 
   const currentDayData = plan?.days?.find((d) => d.day === activeDay) || plan?.days?.[0];
 
+  const calculateDailyTotals = () => {
+    const target = plan?.targetKcal || 2000;
+    const defaults = {
+      kcal: 0,
+      targetKcal: target,
+      carbs: 0,
+      targetCarbs: Math.round((target * 0.5) / 4),
+      protein: 0,
+      targetProtein: Math.round((target * 0.2) / 4),
+      fat: 0,
+      targetFat: Math.round((target * 0.3) / 9)
+    };
+
+    if (!currentDayData || !currentDayData.meals) {
+      return defaults;
+    }
+
+    currentDayData.meals.forEach((m) => {
+      defaults.kcal += m.calories || 0;
+      defaults.carbs += m.carbs || 0;
+      defaults.protein += m.protein || 0;
+      defaults.fat += m.fat || 0;
+    });
+
+    return defaults;
+  };
+
+  const dailyTotals = calculateDailyTotals();
+
   const handleToggleEaten = (mealId, eaten) => {
     toggleEatenMutation.mutate({ day: activeDay, mealId, eaten });
   };
@@ -88,7 +117,7 @@ export const DietPlan = () => {
 
       {/* Daily Totals Bar */}
       <div className="mb-8">
-        <DailyTotals />
+        <DailyTotals totals={dailyTotals} />
       </div>
 
       {/* Notes Card */}

@@ -30,7 +30,7 @@ const dietPlanSchema = new Schema({
   avoidFoods: [String],
   preferFoods: [String],
   generatedByAi: { type: Boolean, default: true },
-  aiModel: { type: String, default: 'gemini-1.5-flash' },
+  aiModel: { type: String, default: 'gemini-2.5-flash' },
   userRating: { type: Number, min: 1, max: 5 },
   active: { type: Boolean, default: true },
   createdAt: { type: Date, default: Date.now }

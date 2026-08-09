@@ -21,17 +21,17 @@ export const Dashboard = () => {
   const { data: currentPlan } = useCurrentPlan();
   const updateWaterMutation = useUpdateWater();
 
-  const summary = foodLog?.summary || {
-    consumedKcal: 1450,
-    targetKcal: profile?.targetCalories || 1950,
-    protein: 68,
-    targetProtein: 95,
-    carbs: 185,
-    targetCarbs: 240,
-    fat: 46,
-    targetFat: 55,
-    waterGlasses: 6,
-    streak: 12
+  const summary = {
+    consumedKcal: foodLog?.summary?.totalCalories || 0,
+    targetKcal: foodLog?.summary?.targetCalories || profile?.targetKcal || profile?.targetCalories || 2000,
+    protein: foodLog?.summary?.totalProtein || 0,
+    targetProtein: profile?.proteinTargetG || 95,
+    carbs: foodLog?.summary?.totalCarbs || 0,
+    targetCarbs: profile?.carbTargetG || 240,
+    fat: foodLog?.summary?.totalFat || 0,
+    targetFat: profile?.fatTargetG || 55,
+    waterGlasses: foodLog?.summary?.waterGlasses || 0,
+    streak: foodLog?.summary?.streak || 0
   };
 
   const handleWaterToggle = (newGlasses) => {

@@ -63,7 +63,7 @@ const searchOpenFoodFacts = async (query) => {
  */
 const geminiNutritionEstimate = async (foodName, weightGrams = 100) => {
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
     const prompt = `You are a certified nutritionist. 
 Estimate the nutritional content for: "${foodName}" (portion: ${weightGrams}g).
 Return ONLY valid JSON, no markdown, no explanation:

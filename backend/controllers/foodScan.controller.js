@@ -1,5 +1,6 @@
 const FoodCache = require('../models/FoodCache.model');
 const MealLog = require('../models/MealLog.model');
+const UserProfile = require('../models/UserProfile.model');
 const crypto = require('crypto');
 const { identifyFood } = require('../utils/gemini');
 const { resolveNutrition } = require('../utils/nutritionResolver');
@@ -46,8 +47,9 @@ const scanFoodPhoto = async (req, res, next) => {
       ? { yoloClass: req.body.yoloClass, yoloConfidence: parseFloat(req.body.yoloConfidence) }
       : null;
 
-    // 4. Run Gemini Vision — food gate + identification
-    const aiResult = await identifyFood(req.file.buffer, req.file.mimetype, yoloHint);
+    // 4. Fetch User Profile and Run Gemini Vision — food gate + identification
+    const userProfile = await UserProfile.findOne({ userId: req.user._id });
+    const aiResult = await identifyFood(req.file.buffer, req.file.mimetype, yoloHint, userProfile);
 
     // 5. Food gate: reject non-food images
     if (aiResult.isFood === false) {
@@ -99,14 +101,19 @@ const scanFoodPhoto = async (req, res, next) => {
         portionDescription: aiResult.portionDescription || '',
         estimatedWeightGrams: aiResult.estimatedWeightGrams || 100,
         isIndianFood: aiResult.isIndianFood,
-        yoloHint: yoloHint || null
+        yoloHint: yoloHint || null,
+        healthFeedback: aiResult.healthFeedback || null
       },
       usageCount: 1,
       lastUsed: new Date()
     };
 
-    // 10. Save to FoodCache
-    const newCache = await FoodCache.create(resultPayload);
+    // 10. Save/Update FoodCache (using upsert to prevent duplicate key errors)
+    const newCache = await FoodCache.findOneAndUpdate(
+      { dishName: resultPayload.dishName },
+      resultPayload,
+      { upsert: true, new: true }
+    );
 
     // 11. Return scored result
     return res.status(200).json({
@@ -119,6 +126,13 @@ const scanFoodPhoto = async (req, res, next) => {
     });
 
   } catch (error) {
+    if (error.message && (error.message.includes('quota') || error.message.includes('Quota') || error.message.includes('429') || error.message.includes('limit') || error.message.includes('quota exceeded'))) {
+      return res.status(429).json({
+        success: false,
+        error: 'quota_exceeded',
+        message: 'Daily AI scanner quota exceeded for this API key. Please check your API usage limits or try again tomorrow.'
+      });
+    }
     // Handle Gemini network errors gracefully
     if (error.message && error.message.includes('fetch')) {
       return res.status(503).json({
