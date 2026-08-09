@@ -23,6 +23,7 @@ const sendPushNotification = async (fcmToken, title, body, data = {}) => {
 const sendEmail = async (to, subject, htmlBody) => {
   if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
     console.log(`Email mock sent to ${to}: ${subject}`);
+    console.log(`Email Body: ${htmlBody}`);
     return true;
   }
 
