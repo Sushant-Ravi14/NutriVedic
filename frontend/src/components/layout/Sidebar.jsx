@@ -107,9 +107,6 @@ export const Sidebar = () => {
           <span className="font-sans text-[14px] font-medium text-black truncate">
             {user?.firstName ? `${user.firstName} ${user.lastName || ''}` : 'User'}
           </span>
-          <span className="font-mono text-[11px] text-muted truncate">
-            {profile?.targetCalories ? `${profile.targetCalories} kcal` : '2,000 kcal'}
-          </span>
         </div>
       </div>
 
