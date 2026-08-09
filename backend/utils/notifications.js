@@ -60,7 +60,8 @@ const sendEmail = async (to, subject, htmlBody) => {
     console.log(`[Email Delivered] Successfully sent to ${to} via Gmail SMTP!`);
     return true;
   } catch (error) {
-    console.error(`[Email Error] SMTP Delivery failed (${error.message}). Logging message: ${subject} | ${htmlBody}`);
+    console.error(`[Email Error] SMTP Delivery failed (${error.message}).`);
+    console.log(`[Fallback] Since email failed, here is the body/OTP: ${subject} | ${htmlBody}`);
     return false;
   }
 };
