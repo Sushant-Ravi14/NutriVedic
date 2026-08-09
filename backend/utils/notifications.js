@@ -22,38 +22,51 @@ const sendPushNotification = async (fcmToken, title, body, data = {}) => {
 
 const sendEmail = async (to, subject, htmlBody) => {
   if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-    console.log(`Email mock sent to ${to}: ${subject}`);
-    console.log(`Email Body: ${htmlBody}`);
+    console.log(`[Email Mock] Sent to ${to}: ${subject} | ${htmlBody}`);
     return true;
   }
 
   try {
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: process.env.SMTP_PORT,
-      secure: process.env.SMTP_PORT == 465,
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS
-      }
-    });
+    const isGmail = (process.env.SMTP_HOST || '').includes('gmail') || (process.env.SMTP_USER || '').includes('@gmail.com');
+    const cleanPass = (process.env.SMTP_PASS || '').replace(/\s+/g, '');
+
+    const transporterConfig = isGmail
+      ? {
+          service: 'gmail',
+          auth: {
+            user: process.env.SMTP_USER,
+            pass: cleanPass
+          }
+        }
+      : {
+          host: process.env.SMTP_HOST,
+          port: Number(process.env.SMTP_PORT) || 587,
+          secure: process.env.SMTP_PORT == 465,
+          auth: {
+            user: process.env.SMTP_USER,
+            pass: cleanPass
+          }
+        };
+
+    const transporter = nodemailer.createTransport(transporterConfig);
 
     await transporter.sendMail({
-      from: process.env.FROM_EMAIL || 'noreply@nutrivedic.com',
+      from: process.env.FROM_EMAIL || process.env.SMTP_USER,
       to,
       subject,
       html: htmlBody
     });
+
+    console.log(`[Email Delivered] Successfully sent to ${to} via Gmail SMTP!`);
     return true;
   } catch (error) {
-    console.error('Email Error:', error.message);
+    console.error(`[Email Error] SMTP Delivery failed (${error.message}). Logging message: ${subject} | ${htmlBody}`);
     return false;
   }
 };
 
 const scheduleExpirationAlerts = async () => {
   try {
-    // Find all users who have items expiring in <= 2 days where alert hasn't been sent
     const inventories = await UserInventory.find({
       'items': {
         $elemMatch: {

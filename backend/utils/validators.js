@@ -14,15 +14,18 @@ const loginValidator = [
 const profileValidator = [
   body('age').optional().isNumeric(),
   body('heightCm').optional().isNumeric(),
+  body('height').optional().isNumeric(),
   body('weightKg').optional().isNumeric(),
-  body('gender').optional().isIn(['male', 'female', 'other']),
-  body('goal').optional().isIn(['weight_loss', 'weight_gain', 'maintain', 'manage_disease'])
+  body('weight').optional().isNumeric(),
+  body('gender').optional(),
+  body('sex').optional(),
+  body('goal').optional()
 ];
 
 const mealLogValidator = [
-  body('mealType').isIn(['breakfast', 'lunch', 'dinner', 'snack']).withMessage('Invalid meal type'),
-  body('foodName').notEmpty().withMessage('Food name is required'),
-  body('date').matches(/^\d{4}-\d{2}-\d{2}$/).withMessage('Date must be YYYY-MM-DD')
+  body('mealType').optional().isIn(['breakfast', 'lunch', 'dinner', 'snack']).withMessage('Invalid meal type'),
+  body('foodName').optional().notEmpty(),
+  body('date').optional()
 ];
 
 module.exports = {
