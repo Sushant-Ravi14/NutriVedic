@@ -17,17 +17,30 @@ export const FoodIcon = ({ className = 'w-5 h-5', fill = 'currentColor' }) => (
   </svg>
 );
 
+const dataURLtoBlob = (dataurl) => {
+  const arr = dataurl.split(',');
+  const mime = arr[0].match(/:(.*?);/)[1];
+  const bstr = atob(arr[1]);
+  let n = bstr.length;
+  const u8arr = new Uint8Array(n);
+  while (n--) {
+    u8arr[n] = bstr.charCodeAt(n);
+  }
+  return new Blob([u8arr], { type: mime });
+};
+
 export const FreshnessDetector = ({ onAddToInventory }) => {
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const canvasRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   const [itemName, setItemName] = useState('Fresh Produce');
   const [result, setResult] = useState(null);
   const [cameraError, setCameraError] = useState(null);
   const [capturedSnapshot, setCapturedSnapshot] = useState(null);
 
-  const { analyzeImage, isAnalyzing, saveFreshness } = useFreshness();
+  const { analyzeImage, isAnalyzing } = useFreshness();
 
   useEffect(() => {
     let active = true;
@@ -77,21 +90,42 @@ export const FreshnessDetector = ({ onAddToInventory }) => {
     setCapturedSnapshot(img.src);
 
     img.onload = async () => {
-      const res = await analyzeImage(img);
-      setResult(res);
+      try {
+        const blob = dataURLtoBlob(canvas.toDataURL('image/jpeg'));
+        const res = await analyzeImage(blob);
+        setResult(res);
+        if (res.itemName) {
+          setItemName(res.itemName);
+        }
+      } catch (err) {
+        console.error('Freshness analysis failed:', err);
+        setCapturedSnapshot(null);
+        setResult(null);
+      }
     };
   };
 
-  const handleSave = async () => {
-    if (result) {
-      const data = {
-        itemName,
-        freshnessClass: result.freshnessClass,
-        score: result.score,
-        shelfLifeDays: result.shelfLifeDays
-      };
-      await saveFreshness(data);
-      if (onAddToInventory) onAddToInventory(data);
+  const handleFileUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    const objectUrl = URL.createObjectURL(file);
+    setCapturedSnapshot(objectUrl);
+    
+    analyzeImage(file).then(res => {
+      setResult(res);
+      if (res.itemName) setItemName(res.itemName);
+    }).catch(err => {
+      console.error('Upload analysis failed:', err);
+      setCapturedSnapshot(null);
+      setResult(null);
+    });
+    if (e.target) e.target.value = '';
+  };
+
+  const handleSave = () => {
+    if (onAddToInventory) {
+      onAddToInventory();
     }
   };
 
@@ -138,8 +172,24 @@ export const FreshnessDetector = ({ onAddToInventory }) => {
           className="flex items-center justify-center gap-2"
         >
           <FoodIcon fill="#ffffff" className="w-5 h-5 shrink-0" />
-          <span>{isAnalyzing ? 'Analyzing Produce...' : 'Capture Produce'}</span>
+          <span>{isAnalyzing ? 'Analyzing...' : 'Capture'}</span>
         </Button>
+        <Button
+          variant="secondary"
+          fullWidth
+          onClick={() => fileInputRef.current?.click()}
+          disabled={isAnalyzing}
+          className="shrink-0"
+        >
+          Upload Photo
+        </Button>
+        <input 
+          type="file" 
+          accept="image/*" 
+          className="hidden" 
+          ref={fileInputRef} 
+          onChange={handleFileUpload} 
+        />
       </div>
 
       <div>
@@ -207,6 +257,13 @@ export const FreshnessDetector = ({ onAddToInventory }) => {
             </Card>
           </div>
 
+          {result.healthNote && (
+            <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg flex gap-2">
+              <span className="text-amber-600 text-base shrink-0">💡</span>
+              <p className="font-sans text-xs text-amber-800 leading-relaxed">{result.healthNote}</p>
+            </div>
+          )}
+
           <Button variant="primary" fullWidth onClick={handleSave} className="mt-1">
             Add to inventory
           </Button>
@@ -214,7 +271,7 @@ export const FreshnessDetector = ({ onAddToInventory }) => {
       ) : (
         <div className="p-3 border border-dashed border-border rounded-lg bg-surface text-center">
           <span className="font-mono text-[11px] text-muted">
-            Tap Capture Produce to test freshness
+            Tap Capture or Upload Photo to test freshness
           </span>
         </div>
       )}

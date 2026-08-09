@@ -1,31 +1,37 @@
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Card } from '../../ui/Card';
 import { Chip } from '../../ui/Chip';
 
-export const StepGoal = ({ data, onChange }) => {
-  const goals = [
-    { id: 'weight_loss', title: 'Weight Loss', desc: 'Caloric deficit diet for fat loss' },
-    { id: 'manage_disease', title: 'Manage Disease', desc: 'Ayurvedic therapeutic condition diet' },
-    { id: 'muscle_gain', title: 'Muscle Gain', desc: 'Protein-dense surplus diet' },
-    { id: 'maintenance', title: 'Maintenance', desc: 'Balanced lifestyle & vitals' }
-  ];
+const GOALS = [
+  { id: 'weight_loss',    title: 'Weight Loss',    desc: 'Caloric deficit diet for fat loss',              emoji: '⚖️' },
+  { id: 'manage_disease', title: 'Manage Disease',  desc: 'Ayurvedic therapeutic condition diet',           emoji: '🩺' },
+  { id: 'muscle_gain',    title: 'Muscle Gain',     desc: 'Protein-dense surplus diet',                     emoji: '💪' },
+  { id: 'maintenance',    title: 'Maintenance',     desc: 'Balanced lifestyle & vitals',                    emoji: '🌿' }
+];
 
-  const availableConditions = [
-    'Type 2 Diabetes',
-    'Hypertension',
-    'PCOS / PCOD',
-    'Thyroid (Hypo)',
-    'High Cholesterol',
-    'Fatty Liver'
-  ];
+const CONDITIONS = [
+  'Type 2 Diabetes',
+  'Hypertension',
+  'PCOS / PCOD',
+  'Thyroid (Hypo)',
+  'High Cholesterol',
+  'Fatty Liver',
+  'Acid Reflux / GERD',
+  'Lactose Intolerance'
+];
+
+export const StepGoal = ({ data, onChange }) => {
+  const selectedGoal = data.goal || '';
+  const selectedConditions = data.conditions || [];
+
+  const handleGoalSelect = (goalId) => {
+    onChange({ goal: goalId });
+  };
 
   const toggleCondition = (cond) => {
-    const current = data.conditions || [];
-    if (current.includes(cond)) {
-      onChange({ conditions: current.filter((c) => c !== cond) });
+    if (selectedConditions.includes(cond)) {
+      onChange({ conditions: selectedConditions.filter((c) => c !== cond) });
     } else {
-      onChange({ conditions: [...current, cond] });
+      onChange({ conditions: [...selectedConditions, cond] });
     }
   };
 
@@ -36,55 +42,49 @@ export const StepGoal = ({ data, onChange }) => {
         <p className="font-sans text-xs text-muted">What is your primary health goal for NutriVedic?</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        {goals.map((g) => {
-          const isSelected = data.goal === g.id;
+      {/* Goal Selection Grid */}
+      <div className="grid grid-cols-2 gap-3">
+        {GOALS.map((g) => {
+          const isSelected = selectedGoal === g.id;
           return (
-            <Card
+            <button
               key={g.id}
-              onClick={() => onChange({ goal: g.id })}
-              className={`cursor-pointer transition-all ${
+              type="button"
+              onClick={() => handleGoalSelect(g.id)}
+              className={`text-left p-4 rounded-xl border-2 transition-all duration-150 focus:outline-none ${
                 isSelected
-                  ? 'border-black bg-surface'
-                  : 'border-border bg-white hover:border-black/50'
+                  ? 'border-black bg-black text-white shadow-md scale-[1.02]'
+                  : 'border-border bg-white text-black hover:border-black/50 hover:bg-surface'
               }`}
             >
-              <h4 className="font-sans font-semibold text-sm text-black mb-1">{g.title}</h4>
-              <p className="font-sans text-xs text-muted">{g.desc}</p>
-            </Card>
+              <div className="text-lg mb-1">{g.emoji}</div>
+              <h4 className={`font-sans font-semibold text-sm mb-0.5 ${isSelected ? 'text-white' : 'text-black'}`}>
+                {g.title}
+              </h4>
+              <p className={`font-sans text-xs leading-relaxed ${isSelected ? 'text-white/75' : 'text-muted'}`}>
+                {g.desc}
+              </p>
+            </button>
           );
         })}
       </div>
 
-      {/* AnimatePresence for Condition Chips */}
-      <AnimatePresence>
-        {data.goal === 'manage_disease' && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.2 }}
-            className="flex flex-col gap-3 pt-2 border-t border-border"
-          >
-            <span className="font-mono text-[11px] uppercase tracking-[1.5px] text-label">
-              SELECT HEALTH CONDITIONS TO THERAPEUTICALLY TARGET
-            </span>
-            <div className="flex flex-wrap gap-2">
-              {availableConditions.map((cond) => {
-                const isSelected = (data.conditions || []).includes(cond);
-                return (
-                  <Chip
-                    key={cond}
-                    label={cond}
-                    active={isSelected}
-                    onClick={() => toggleCondition(cond)}
-                  />
-                );
-              })}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Health Conditions */}
+      <div className="flex flex-col gap-3 pt-4 border-t border-border">
+        <span className="font-mono text-[11px] uppercase tracking-[1.5px] text-label">
+          SELECT HEALTH CONDITIONS TO THERAPEUTICALLY TARGET
+        </span>
+        <div className="flex flex-wrap gap-2">
+          {CONDITIONS.map((cond) => (
+            <Chip
+              key={cond}
+              label={cond}
+              active={selectedConditions.includes(cond)}
+              onClick={() => toggleCondition(cond)}
+            />
+          ))}
+        </div>
+      </div>
     </div>
   );
 };

@@ -16,26 +16,59 @@ const stepVariants = {
   exit: { x: -20, opacity: 0, transition: { duration: 0.2 } }
 };
 
+const validate = (step, data) => {
+  switch (step) {
+    case 1:
+      if (!data.age || Number(data.age) < 10 || Number(data.age) > 100)
+        return 'Please enter a valid age (10–100).';
+      if (!data.weight || Number(data.weight) < 20 || Number(data.weight) > 300)
+        return 'Please enter a valid weight (20–300 kg).';
+      if (!data.height || Number(data.height) < 100 || Number(data.height) > 250)
+        return 'Please enter a valid height (100–250 cm).';
+      if (!data.sex)
+        return 'Please select your biological sex.';
+      return null;
+    case 2:
+      if (!data.activityLevel)
+        return 'Please select your activity level.';
+      return null;
+    case 3:
+      if (!data.goal)
+        return 'Please select a primary objective.';
+      return null;
+    default:
+      return null;
+  }
+};
+
 export const Onboarding = () => {
   const [step, setStep] = useState(1);
   const [profileData, setProfileData] = useState({
-    age: 28,
-    weight: 72,
-    height: 175,
+    age: '',
+    weight: '',
+    height: '',
     sex: 'male',
     activityLevel: 'moderate',
-    goal: 'manage_disease',
-    conditions: ['Type 2 Diabetes', 'Hypertension']
+    goal: '',
+    conditions: []
   });
+  const [error, setError] = useState(null);
 
   const { saveProfile } = useAuth();
   const navigate = useNavigate();
 
   const updateFields = (fields) => {
     setProfileData((prev) => ({ ...prev, ...fields }));
+    setError(null); // clear error when user makes changes
   };
 
   const handleNext = () => {
+    const validationError = validate(step, profileData);
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+    setError(null);
     if (step < 4) {
       setStep(step + 1);
     } else {
@@ -44,6 +77,7 @@ export const Onboarding = () => {
   };
 
   const handleBack = () => {
+    setError(null);
     if (step > 1) setStep(step - 1);
   };
 
@@ -95,8 +129,20 @@ export const Onboarding = () => {
           </AnimatePresence>
         </div>
 
+        {/* Validation Error Banner */}
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-4 flex items-center gap-2 px-4 py-3 bg-red-50 border border-red-200 rounded-lg"
+          >
+            <span className="text-red-500 text-base shrink-0">⚠️</span>
+            <p className="font-sans text-xs text-red-700">{error}</p>
+          </motion.div>
+        )}
+
         {/* Footer Navigation Action Controls */}
-        <div className="flex items-center justify-between pt-6 mt-6 border-t border-border">
+        <div className="flex items-center justify-between pt-6 mt-4 border-t border-border">
           {step > 1 ? (
             <Button variant="secondary" onClick={handleBack}>
               ← Back

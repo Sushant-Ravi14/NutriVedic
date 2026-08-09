@@ -22,6 +22,8 @@ export const Auth = () => {
   const [otp, setOtp] = useState('');
   const [pendingUserId, setPendingUserId] = useState(null);
 
+  const [authError, setAuthError] = useState('');
+
   const { login, register, verifyEmail, isLoading } = useAuth();
   const navigate = useNavigate();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -51,6 +53,7 @@ export const Auth = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setAuthError('');
     try {
       if (tab === 'login') {
         await login({ email, password });
@@ -70,17 +73,20 @@ export const Auth = () => {
         }
       }
     } catch (err) {
-      console.error('Auth error:', err);
+      const msg = err.response?.data?.error || err.response?.data?.errors?.[0]?.msg || err.message || 'Authentication failed';
+      setAuthError(msg);
     }
   };
 
   const handleVerifyOtp = async (e) => {
     e.preventDefault();
+    setAuthError('');
     try {
       await verifyEmail({ userId: pendingUserId, otp });
       navigate('/onboarding');
     } catch (err) {
-      console.error('OTP error:', err);
+      const msg = err.response?.data?.error || err.response?.data?.errors?.[0]?.msg || err.message || 'Verification failed';
+      setAuthError(msg);
     }
   };
 
@@ -102,6 +108,11 @@ export const Auth = () => {
 
       {/* Centered White Card 420px */}
       <div className="w-full max-w-[420px] bg-white border border-border rounded-card p-6 md:p-8 shadow-none">
+        {authError && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg font-sans">
+            {authError}
+          </div>
+        )}
         {showOtp ? (
           /* OTP Verification Step */
           <form onSubmit={handleVerifyOtp} className="flex flex-col gap-4">

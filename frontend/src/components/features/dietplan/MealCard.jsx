@@ -13,7 +13,7 @@ export const MealCard = ({ meal, onToggleEaten, onSwap }) => {
             {meal.slot}
           </span>
           <span className="font-mono text-[12px] font-medium text-black">
-            {meal.kcal} kcal
+            {meal.calories || meal.kcal || 0} kcal
           </span>
         </div>
 

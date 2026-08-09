@@ -31,6 +31,7 @@ export const Scanner = () => {
 
   const [activeTab, setActiveTab] = useState('camera');
   const [detectedData, setDetectedData] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
 
   const [history, setHistory] = useState(() => {
     const saved = localStorage.getItem('nutrivedic_search_history');
@@ -55,9 +56,10 @@ export const Scanner = () => {
     localStorage.removeItem('nutrivedic_search_history');
   };
 
-  const handleImageSelect = async (file) => {
+  const handleImageSelect = async (file, previewUrl = null) => {
     try {
       setDetectedData(null);
+      setImagePreview(previewUrl);
       const res = await scanImage(file);
       setDetectedData(res);
       addToHistory(res);
@@ -79,15 +81,19 @@ export const Scanner = () => {
 
   const handleManualSelectFood = (foodItem) => {
     const item = {
-      name: foodItem.name,
+      name: foodItem.name || 'Unknown Food',
       confidence: 100,
       servingSizeGrams: 100,
-      calories: foodItem.calories,
-      protein: foodItem.protein,
-      carbs: foodItem.carbs,
-      fat: foodItem.fat,
-      fiber: foodItem.fiber || 3,
-      glycemicIndex: 'Low'
+      calories: foodItem.calories !== undefined ? foodItem.calories : 0,
+      protein: foodItem.protein !== undefined ? foodItem.protein : 0,
+      carbs: foodItem.carbs !== undefined ? foodItem.carbs : 0,
+      fat: foodItem.fat !== undefined ? foodItem.fat : 0,
+      fiber: foodItem.fiber !== undefined ? foodItem.fiber : 0,
+      sodium: foodItem.sodium !== undefined ? foodItem.sodium : 0,
+      calcium: foodItem.calcium !== undefined ? foodItem.calcium : 0,
+      iron: foodItem.iron !== undefined ? foodItem.iron : 0,
+      vitaminC: foodItem.vitaminC !== undefined ? foodItem.vitaminC : 0,
+      glycemicIndex: foodItem.glycemicIndex || 'Low'
     };
     setDetectedData(item);
     addToHistory(item);
@@ -117,7 +123,7 @@ export const Scanner = () => {
           <div className="flex items-center gap-1.5 p-1 bg-white border border-border rounded-pill overflow-x-auto">
             <button
               type="button"
-              onClick={() => setActiveTab('camera')}
+              onClick={() => { setActiveTab('camera'); setDetectedData(null); }}
               className={`flex-1 py-1.5 px-3 rounded-pill font-mono text-[11px] uppercase tracking-wider transition-colors ${
                 activeTab === 'camera' ? 'bg-black text-white' : 'text-muted hover:text-black'
               }`}
@@ -126,7 +132,7 @@ export const Scanner = () => {
             </button>
             <button
               type="button"
-              onClick={() => setActiveTab('barcode')}
+              onClick={() => { setActiveTab('barcode'); setDetectedData(null); }}
               className={`flex-1 py-1.5 px-3 rounded-pill font-mono text-[11px] uppercase tracking-wider transition-colors ${
                 activeTab === 'barcode' ? 'bg-black text-white' : 'text-muted hover:text-black'
               }`}
@@ -135,7 +141,7 @@ export const Scanner = () => {
             </button>
             <button
               type="button"
-              onClick={() => setActiveTab('manual')}
+              onClick={() => { setActiveTab('manual'); setDetectedData(null); }}
               className={`flex-1 py-1.5 px-3 rounded-pill font-mono text-[11px] uppercase tracking-wider transition-colors ${
                 activeTab === 'manual' ? 'bg-black text-white' : 'text-muted hover:text-black'
               }`}
@@ -144,7 +150,7 @@ export const Scanner = () => {
             </button>
             <button
               type="button"
-              onClick={() => setActiveTab('freshness')}
+              onClick={() => { setActiveTab('freshness'); setDetectedData(null); }}
               className={`flex-1 py-1.5 px-3 rounded-pill font-mono text-[11px] uppercase tracking-wider transition-colors ${
                 activeTab === 'freshness' ? 'bg-black text-white' : 'text-muted hover:text-black'
               }`}
@@ -179,6 +185,7 @@ export const Scanner = () => {
               foodData={detectedData}
               onAddLog={handleAddLog}
               defaultSlot={defaultSlot}
+              imagePreview={imagePreview}
             />
           ) : (
             <div className="flex flex-col gap-4 w-full h-full justify-between">

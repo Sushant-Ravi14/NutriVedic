@@ -1,7 +1,8 @@
 import React from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import { useUIStore } from '../../store/uiStore';
+import { useAuth } from '../../hooks/useAuth';
 
 export const renderNavIcon = (svgType, fill = 'currentColor', className = 'shrink-0') => {
   switch (svgType) {
@@ -56,7 +57,20 @@ export const Sidebar = () => {
   const user = useAuthStore((state) => state.user);
   const profile = useAuthStore((state) => state.profile);
   const location = useLocation();
+  const navigate = useNavigate();
   const setActiveNav = useUIStore((state) => state.setActiveNav);
+  const addToast = useUIStore((state) => state.addToast);
+  const { logout } = useAuth();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/login');
+    } catch (e) {
+      addToast('Logged out', 'info');
+      navigate('/login');
+    }
+  };
 
   const getInitials = () => {
     if (!user) return 'NV';
@@ -123,9 +137,19 @@ export const Sidebar = () => {
         })}
       </nav>
 
-      {/* App Version Footer */}
-      <div className="p-4 border-t border-border hidden lg:block">
-        <span className="font-mono text-[10px] uppercase text-label tracking-widest block">
+      {/* Logout + Version Footer */}
+      <div className="p-3 border-t border-border flex flex-col gap-2">
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs lg:text-[14px] font-sans font-medium text-muted hover:text-red-600 hover:bg-red-50 transition-colors w-full text-left group"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" height="20px" width="20px" viewBox="0 -960 960 960" fill="currentColor" className="shrink-0">
+            <path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h280v80H200v560h280v80H200Zm440-160-55-58 102-102H360v-80h327L585-622l55-58 200 200-200 200Z" />
+          </svg>
+          <span className="hidden lg:inline">Logout</span>
+        </button>
+        <span className="font-mono text-[10px] uppercase text-label tracking-widest hidden lg:block pl-3">
           NutriVedic v1.0
         </span>
       </div>

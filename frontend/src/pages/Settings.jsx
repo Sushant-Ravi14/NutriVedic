@@ -22,14 +22,16 @@ export const Settings = () => {
   const { saveProfile } = useAuth();
 
   const handleSaveProfile = async (formData) => {
-    const { firstName, lastName, email, age, weight, height } = formData;
+    const { firstName, lastName, email, age, weight, height, goal } = formData;
     const numWeight = Number(weight) || 72;
     const numHeight = Number(height) || 175;
     const numAge = Number(age) || 28;
 
     // Calculate TDEE and Target Calories dynamically from updated biometrics
     const bmr = 10 * numWeight + 6.25 * numHeight - 5 * numAge + 5;
-    const targetCalories = Math.round(bmr * 1.25);
+    let targetCalories = Math.round(bmr * 1.375); // moderate activity baseline
+    if (goal === 'build_muscle') targetCalories += 300;
+    else if (goal === 'fat_loss') targetCalories -= 400;
 
     updateUser({ firstName, lastName, email });
 
@@ -38,7 +40,8 @@ export const Settings = () => {
       age: numAge,
       weight: numWeight,
       height: numHeight,
-      targetCalories
+      targetCalories,
+      goal
     };
 
     updateProfile(updatedProfileData);
@@ -46,7 +49,7 @@ export const Settings = () => {
   };
 
   const handleSaveConditions = async (conditions) => {
-    const updatedProfileData = { ...profile, conditions };
+    const updatedProfileData = { ...profile, healthConditions: conditions };
     updateProfile(updatedProfileData);
     await saveProfile(updatedProfileData);
   };
@@ -97,7 +100,7 @@ export const Settings = () => {
 
           {activeSection === 'conditions' && (
             <ConditionsEditor
-              initialConditions={profile?.conditions || []}
+              initialConditions={profile?.healthConditions || profile?.conditions || []}
               onSave={handleSaveConditions}
             />
           )}

@@ -54,7 +54,8 @@ const verifyEmail = async (req, res, next) => {
     user.refreshToken = refreshToken;
     await user.save();
 
-    res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict', maxAge: 7 * 24 * 60 * 60 * 1000 });
+    const sameSiteMode = process.env.NODE_ENV === 'production' ? 'strict' : 'lax';
+    res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: sameSiteMode, maxAge: 7 * 24 * 60 * 60 * 1000 });
     res.status(200).json({ success: true, accessToken, user });
   } catch (error) {
     next(error);
@@ -77,7 +78,8 @@ const login = async (req, res, next) => {
     user.lastLogin = new Date();
     await user.save();
 
-    res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict', maxAge: 7 * 24 * 60 * 60 * 1000 });
+    const sameSiteMode = process.env.NODE_ENV === 'production' ? 'strict' : 'lax';
+    res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: sameSiteMode, maxAge: 7 * 24 * 60 * 60 * 1000 });
     res.status(200).json({ success: true, accessToken, user });
   } catch (error) {
     next(error);
@@ -109,7 +111,8 @@ const refresh = async (req, res, next) => {
     user.refreshToken = tokens.refreshToken;
     await user.save();
 
-    res.cookie('refreshToken', tokens.refreshToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict', maxAge: 7 * 24 * 60 * 60 * 1000 });
+    const sameSiteMode = process.env.NODE_ENV === 'production' ? 'strict' : 'lax';
+    res.cookie('refreshToken', tokens.refreshToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: sameSiteMode, maxAge: 7 * 24 * 60 * 60 * 1000 });
     res.status(200).json({ success: true, accessToken: tokens.accessToken });
   } catch (error) {
     res.status(401).json({ success: false, error: 'Invalid refresh token' });
