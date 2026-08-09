@@ -4,7 +4,7 @@ const userSchema = new mongoose.Schema({
   email: { type: String, unique: true, lowercase: true, trim: true },
   phone: { type: String, unique: true, sparse: true },
   passwordHash: { type: String },
-  googleId: { type: String, sparse: true },
+  googleId: { type: String, unique: true, sparse: true },
   firstName: String,
   lastName: String,
   profilePictureUrl: String,
@@ -24,9 +24,5 @@ const userSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 });
-
-userSchema.index({ email: 1 }, { unique: true });
-userSchema.index({ phone: 1 }, { unique: true, sparse: true });
-userSchema.index({ googleId: 1 }, { unique: true, sparse: true });
 
 module.exports = mongoose.model('User', userSchema);

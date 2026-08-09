@@ -2,7 +2,7 @@ const User = require('../models/User.model');
 const UserProfile = require('../models/UserProfile.model');
 const WeightLog = require('../models/WeightLog.model');
 const AuditLog = require('../models/AuditLog.model');
-const { calcBMI, getBMICategory, calcBMR, calcTDEE, calcTargetKcal, calcMacroTargets } = require('../utils/calculations');
+const { calcBMI, calcBMR, calcTDEE, calcTargetKcal, calcMacroTargets } = require('../utils/calculations');
 
 const getProfile = async (req, res, next) => {
   try {
@@ -26,42 +26,65 @@ const updateProfile = async (req, res, next) => {
       profile = new UserProfile({ userId: req.user._id });
     }
 
-    const updates = req.body;
-    Object.assign(profile, updates);
+    const body = req.body || {};
 
-    // Recalculate health metrics if relevant fields changed
-    if (profile.weightKg && profile.heightCm && profile.age && profile.gender && profile.activityLevel && profile.goal) {
-      profile.bmi = calcBMI(profile.weightKg, profile.heightCm);
-      const bmr = calcBMR(profile.weightKg, profile.heightCm, profile.age, profile.gender);
-      profile.tdee = calcTDEE(bmr, profile.activityLevel);
-      profile.targetKcal = calcTargetKcal(profile.tdee, profile.goal);
+    // Normalize field names from frontend variations
+    const age = body.age || profile.age;
+    const weightKg = Number(body.weightKg || body.weight || profile.weightKg || 70);
+    const heightCm = Number(body.heightCm || body.height || profile.heightCm || 175);
+    const gender = body.gender || body.sex || profile.gender || 'male';
+    const activityLevel = body.activityLevel || profile.activityLevel || 'moderate';
+    const goal = body.goal || profile.goal || 'maintain';
+    const healthConditions = body.healthConditions || body.conditions || profile.healthConditions || [];
+
+    profile.age = age;
+    profile.weightKg = weightKg;
+    profile.heightCm = heightCm;
+    profile.gender = gender;
+    profile.activityLevel = activityLevel;
+    profile.goal = goal;
+    profile.healthConditions = healthConditions;
+    profile.dietaryPreferences = body.dietaryPreferences || profile.dietaryPreferences || [];
+    profile.allergies = body.allergies || profile.allergies || [];
+    profile.updatedAt = new Date();
+
+    // Calculate health metrics
+    if (weightKg && heightCm && age && gender) {
+      profile.bmi = calcBMI ? calcBMI(weightKg, heightCm) : Number((weightKg / Math.pow(heightCm / 100, 2)).toFixed(1));
+      const bmr = calcBMR ? calcBMR(weightKg, heightCm, age, gender) : (10 * weightKg + 6.25 * heightCm - 5 * age + 5);
+      profile.tdee = body.tdee || (calcTDEE ? calcTDEE(bmr, activityLevel) : Math.round(bmr * 1.375));
+      profile.targetKcal = body.targetKcal || body.targetCalories || (calcTargetKcal ? calcTargetKcal(profile.tdee, goal) : profile.tdee);
       
-      const macros = calcMacroTargets(profile.targetKcal, profile.goal, profile.weightKg);
-      profile.proteinTargetG = macros.protein;
-      profile.fatTargetG = macros.fat;
-      profile.carbTargetG = macros.carbs;
+      if (calcMacroTargets) {
+        const macros = calcMacroTargets(profile.targetKcal, goal, weightKg);
+        profile.proteinTargetG = macros.protein;
+        profile.fatTargetG = macros.fat;
+        profile.carbTargetG = macros.carbs;
+      }
     }
 
     await profile.save();
     res.status(200).json({ success: true, profile });
   } catch (error) {
+    console.error('Update Profile Controller Error:', error);
     next(error);
   }
 };
 
 const addWeightLog = async (req, res, next) => {
   try {
-    const { weightKg, date } = req.body;
+    const { weightKg, weight, date } = req.body;
+    const finalWeight = weightKg || weight;
     
     const weightLog = await WeightLog.create({
       userId: req.user._id,
-      weightKg,
+      weightKg: finalWeight,
       date: date || new Date().toISOString().split('T')[0]
     });
 
     await UserProfile.findOneAndUpdate(
       { userId: req.user._id },
-      { weightKg },
+      { weightKg: finalWeight },
       { new: true }
     );
 
@@ -82,10 +105,10 @@ const getPreferences = async (req, res, next) => {
 
 const updatePreferences = async (req, res, next) => {
   try {
-    const { dietaryPreferences, allergies, healthConditions } = req.body;
+    const { dietaryPreferences, allergies, healthConditions, conditions } = req.body;
     const profile = await UserProfile.findOneAndUpdate(
       { userId: req.user._id },
-      { dietaryPreferences, allergies, healthConditions },
+      { dietaryPreferences, allergies, healthConditions: healthConditions || conditions },
       { new: true, upsert: true }
     );
     res.status(200).json({ success: true, preferences: profile });

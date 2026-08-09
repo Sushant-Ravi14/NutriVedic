@@ -28,7 +28,9 @@ if (process.env.SENTRY_DSN) {
     dsn: process.env.SENTRY_DSN,
     tracesSampleRate: 1.0,
   });
-  app.use(Sentry.Handlers.requestHandler());
+  if (Sentry.Handlers && Sentry.Handlers.requestHandler) {
+    app.use(Sentry.Handlers.requestHandler());
+  }
 }
 
 // Global Middleware
@@ -67,7 +69,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // Error Handling (Must be last)
-if (process.env.SENTRY_DSN) {
+if (process.env.SENTRY_DSN && Sentry.Handlers && Sentry.Handlers.errorHandler) {
   app.use(Sentry.Handlers.errorHandler());
 }
 app.use(errorHandler);

@@ -26,7 +26,12 @@ const register = async (req, res, next) => {
 
     await sendEmail(email, 'Verify your NutriVedic Email', `Your OTP is: ${emailOtp}`);
 
-    res.status(201).json({ success: true, message: 'OTP sent to email', userId: user._id });
+    res.status(201).json({
+      success: true,
+      message: 'OTP sent to email',
+      userId: user._id,
+      ...(process.env.NODE_ENV === 'development' && { devOtp: emailOtp })
+    });
   } catch (error) {
     next(error);
   }
