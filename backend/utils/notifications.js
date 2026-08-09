@@ -47,6 +47,7 @@ const sendEmail = async (to, subject, htmlBody) => {
     return true;
   } catch (error) {
     console.error('Email Error:', error.message);
+    console.log(`[Fallback] Since email failed, here is the body/OTP: ${htmlBody}`);
     return false;
   }
 };
