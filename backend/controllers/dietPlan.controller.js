@@ -65,7 +65,10 @@ const getPlanById = async (req, res, next) => {
 const handleSwapMeal = async (req, res, next) => {
   try {
     const { day, slot } = req.body;
-    const plan = await DietPlan.findOne({ _id: req.params.planId, userId: req.user._id });
+    const query = req.params.planId === 'current'
+      ? { userId: req.user._id, active: true }
+      : { _id: req.params.planId, userId: req.user._id };
+    const plan = await DietPlan.findOne(query);
     if (!plan) return res.status(404).json({ success: false, error: 'Plan not found' });
 
     const profile = await UserProfile.findOne({ userId: req.user._id });
@@ -91,7 +94,10 @@ const handleSwapMeal = async (req, res, next) => {
 const toggleEaten = async (req, res, next) => {
   try {
     const { day, slot, eaten } = req.body;
-    const plan = await DietPlan.findOne({ _id: req.params.planId, userId: req.user._id });
+    const query = req.params.planId === 'current'
+      ? { userId: req.user._id, active: true }
+      : { _id: req.params.planId, userId: req.user._id };
+    const plan = await DietPlan.findOne(query);
     if (!plan) return res.status(404).json({ success: false, error: 'Plan not found' });
 
     const dayPlan = plan.plan.find(p => p.day === day);
@@ -109,7 +115,10 @@ const toggleEaten = async (req, res, next) => {
 
 const exportPlan = async (req, res, next) => {
   try {
-    const plan = await DietPlan.findOne({ _id: req.params.planId, userId: req.user._id });
+    const query = req.params.planId === 'current'
+      ? { userId: req.user._id, active: true }
+      : { _id: req.params.planId, userId: req.user._id };
+    const plan = await DietPlan.findOne(query);
     const profile = await UserProfile.findOne({ userId: req.user._id });
     
     if (!plan) return res.status(404).json({ success: false, error: 'Plan not found' });
@@ -123,8 +132,11 @@ const exportPlan = async (req, res, next) => {
 
 const ratePlan = async (req, res, next) => {
   try {
+    const query = req.params.planId === 'current'
+      ? { userId: req.user._id, active: true }
+      : { _id: req.params.planId, userId: req.user._id };
     const plan = await DietPlan.findOneAndUpdate(
-      { _id: req.params.planId, userId: req.user._id },
+      query,
       { userRating: req.body.rating },
       { new: true }
     );

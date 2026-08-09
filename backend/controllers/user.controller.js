@@ -37,6 +37,11 @@ const updateProfile = async (req, res, next) => {
     const goal = body.goal || profile.goal || 'maintain';
     const healthConditions = body.healthConditions || body.conditions || profile.healthConditions || [];
 
+    const oldGoal = profile.goal;
+    const oldConditions = (profile.healthConditions || []).join(',');
+    const newConditions = (healthConditions || []).join(',');
+    const conditionsChanged = oldGoal !== goal || oldConditions !== newConditions;
+
     profile.age = age;
     profile.weightKg = weightKg;
     profile.heightCm = heightCm;
@@ -64,6 +69,53 @@ const updateProfile = async (req, res, next) => {
     }
 
     await profile.save();
+
+    // Dynamically sync today's DailySummary target calories to match the new profile target
+    try {
+      const todayDate = new Date().toISOString().split('T')[0];
+      const DailySummary = require('../models/DailySummary.model');
+      const todaySummary = await DailySummary.findOne({ userId: req.user._id, date: todayDate });
+      if (todaySummary) {
+        todaySummary.targetCalories = profile.targetKcal;
+        todaySummary.caloriesRemaining = profile.targetKcal - (todaySummary.totalCalories || 0);
+        await todaySummary.save();
+      }
+    } catch (summaryErr) {
+      console.warn('Could not sync today DailySummary target calories:', summaryErr.message);
+    }
+
+    // Trigger background diet plan regeneration if core health conditions changed
+    if (conditionsChanged) {
+      const DietPlan = require('../models/DietPlan.model');
+      const { generateDietPlan } = require('../utils/gemini');
+
+      DietPlan.updateMany({ userId: req.user._id }, { active: false }).then(() => {
+        return generateDietPlan({
+          age: profile.age || 30,
+          gender: profile.gender || 'male',
+          heightCm: profile.heightCm || 170,
+          weightKg: profile.weightKg || 70,
+          activityLevel: profile.activityLevel || 'moderate',
+          goal: profile.goal || 'maintain',
+          healthConditions: profile.healthConditions || [],
+          targetKcal: profile.targetKcal || 2000,
+          proteinTargetG: profile.proteinTargetG || 50
+        });
+      }).then((aiResponse) => {
+        return DietPlan.create({
+          userId: req.user._id,
+          condition: profile.healthConditions ? profile.healthConditions.join(', ') : 'Healthy',
+          targetKcal: profile.targetKcal,
+          planStartDate: new Date(),
+          planEndDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+          plan: aiResponse.plan,
+          dietaryNotes: aiResponse.dietaryNotes,
+          avoidFoods: aiResponse.avoidFoods,
+          preferFoods: aiResponse.preferFoods
+        });
+      }).catch(err => console.error("Background diet plan generation failed:", err));
+    }
+
     res.status(200).json({ success: true, profile });
   } catch (error) {
     console.error('Update Profile Controller Error:', error);

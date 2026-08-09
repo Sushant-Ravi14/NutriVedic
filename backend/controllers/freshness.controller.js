@@ -1,5 +1,6 @@
 const FreshnessScan = require('../models/FreshnessScan.model');
 const UserInventory = require('../models/UserInventory.model');
+const UserProfile = require('../models/UserProfile.model');
 const { uploadBuffer } = require('../utils/cloudinary');
 const { analyzeProduceFreshness, estimateFreshness } = require('../utils/gemini');
 const { calculateFreshnessVerdict } = require('../utils/scoreEngine');
@@ -30,7 +31,8 @@ const logFreshness = async (req, res, next) => {
     // ── Pass 1: Gemini Vision — produce gate + freshness score ──────────────
     let visionResult;
     try {
-      visionResult = await analyzeProduceFreshness(req.file.buffer, req.file.mimetype);
+      const userProfile = await UserProfile.findOne({ userId: req.user._id });
+      visionResult = await analyzeProduceFreshness(req.file.buffer, req.file.mimetype, userProfile);
     } catch (visionError) {
       // Vision model failed — if YOLO hint provided, use that as fallback
       if (req.body.yoloClass) {
@@ -111,13 +113,20 @@ const logFreshness = async (req, res, next) => {
       ? new Date(Date.now() + shelfLifeData.estimatedDaysRemaining * 24 * 60 * 60 * 1000)
       : null;
 
+    const mapStatusToEnum = (status) => {
+      const s = (status || 'fresh').toLowerCase();
+      if (s.includes('fresh')) return 'fresh';
+      if (s.includes('ripe') || s.includes('overripe')) return 'ripe';
+      return 'stale';
+    };
+
     // ── Save FreshnessScan document ──────────────────────────────────────────
     const scan = await FreshnessScan.create({
       userId: req.user._id,
       itemName: visionResult.foodIdentified,
       itemType: visionResult.status.toLowerCase().includes('fruit') ? 'fruit' : 'vegetable',
       freshnessScore: finalScore,
-      freshnessClass: visionResult.status,
+      freshnessClass: mapStatusToEnum(visionResult.status),
       imageUrl,
       estimatedDaysRemaining: shelfLifeData.estimatedDaysRemaining ?? 0,
       estimatedSpoilageDate,
@@ -174,6 +183,7 @@ const logFreshness = async (req, res, next) => {
         bestConsumedWithin: shelfLifeData.bestConsumedWithin,
         shelfLifeTip: shelfLifeData.shelfLifeTip,
         nutritionNote: shelfLifeData.nutritionNote,
+        healthNote: visionResult.healthNote || null,
         avoidIfDescription: shelfLifeData.avoidIfDescription,
         nutritionAtCurrentState: shelfLifeData.nutritionAtCurrentState,
         // Meta
@@ -184,6 +194,13 @@ const logFreshness = async (req, res, next) => {
     });
 
   } catch (error) {
+    if (error.message && (error.message.includes('quota') || error.message.includes('Quota') || error.message.includes('429') || error.message.includes('limit') || error.message.includes('quota exceeded'))) {
+      return res.status(429).json({
+        success: false,
+        error: 'quota_exceeded',
+        message: 'Daily AI freshness scanner quota exceeded for this API key. Please check your API usage limits or try again tomorrow.'
+      });
+    }
     next(error);
   }
 };

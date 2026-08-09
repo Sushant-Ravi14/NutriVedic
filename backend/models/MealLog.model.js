@@ -14,7 +14,10 @@ const mealLogSchema = new Schema({
     fat: Number,
     carbs: Number, 
     fiber: Number, 
-    sodium: Number
+    sodium: Number,
+    calcium: Number,
+    iron: Number,
+    vitaminC: Number
   },
   mealPhotoUrl: String,
   date: { type: String, required: true }, // YYYY-MM-DD

@@ -17,7 +17,19 @@ export const CameraIcon = ({ className = 'w-6 h-6', fill = 'currentColor' }) => 
 export const FoodScanner = ({ onImageSelect, isLoading }) => {
   const videoRef = useRef(null);
   const streamRef = useRef(null);
+  const fileInputRef = useRef(null);
   const [cameraError, setCameraError] = useState(null);
+  const [capturedPreview, setCapturedPreview] = useState(null);
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (file && onImageSelect) {
+      const url = URL.createObjectURL(file);
+      setCapturedPreview(url);
+      onImageSelect(file, url);
+    }
+    if (e.target) e.target.value = '';
+  };
 
   useEffect(() => {
     let active = true;
@@ -60,11 +72,13 @@ export const FoodScanner = ({ onImageSelect, isLoading }) => {
 
     const ctx = canvas.getContext('2d');
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const previewUrl = canvas.toDataURL('image/jpeg');
+    setCapturedPreview(previewUrl);
 
     canvas.toBlob((blob) => {
       if (blob && onImageSelect) {
         const file = new File([blob], 'realtime-scan.jpg', { type: 'image/jpeg' });
-        onImageSelect(file);
+        onImageSelect(file, previewUrl);
       }
     }, 'image/jpeg', 0.9);
   };
@@ -72,7 +86,9 @@ export const FoodScanner = ({ onImageSelect, isLoading }) => {
   return (
     <div className="flex flex-col items-center gap-4 w-full">
       <div className="relative w-full aspect-video max-h-[300px] bg-black rounded-card overflow-hidden border border-border flex items-center justify-center">
-        {cameraError ? (
+        {capturedPreview ? (
+          <img src={capturedPreview} alt="Captured food" className="w-full h-full object-cover" />
+        ) : cameraError ? (
           <div className="p-4 text-center text-muted font-mono text-xs flex flex-col items-center gap-2">
             <CameraIcon fill="#9e9e9e" className="w-8 h-8" />
             <span>{cameraError}</span>
@@ -95,16 +111,34 @@ export const FoodScanner = ({ onImageSelect, isLoading }) => {
         </div>
       </div>
 
-      <Button
-        variant="primary"
-        fullWidth
-        onClick={handleCapture}
-        disabled={isLoading || Boolean(cameraError)}
-        className="flex items-center justify-center gap-2"
-      >
-        <CameraIcon fill="#ffffff" className="w-5 h-5" />
-        {isLoading ? 'Analyzing Real-Time Photo...' : 'Capture Real-Time Photo'}
-      </Button>
+      <div className="flex w-full gap-2">
+        <Button
+          variant="primary"
+          fullWidth
+          onClick={handleCapture}
+          disabled={isLoading || Boolean(cameraError)}
+          className="flex items-center justify-center gap-2"
+        >
+          <CameraIcon fill="#ffffff" className="w-5 h-5 shrink-0" />
+          <span>{isLoading ? 'Analyzing...' : 'Capture Photo'}</span>
+        </Button>
+        <Button
+          variant="secondary"
+          fullWidth
+          onClick={() => fileInputRef.current?.click()}
+          disabled={isLoading}
+          className="shrink-0"
+        >
+          Upload Photo
+        </Button>
+        <input 
+          type="file" 
+          accept="image/*" 
+          className="hidden" 
+          ref={fileInputRef} 
+          onChange={handleFileUpload} 
+        />
+      </div>
     </div>
   );
 };

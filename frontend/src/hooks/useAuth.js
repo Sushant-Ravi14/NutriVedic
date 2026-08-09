@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '../store/authStore';
 import { loginApi, registerApi, verifyEmailApi, logoutApi } from '../api/auth.api';
 import { getProfileApi, saveProfileApi } from '../api/user.api';
@@ -7,6 +7,7 @@ import { useUIStore } from '../store/uiStore';
 export const useAuth = () => {
   const { user, profile, isAuthenticated, setAuth, clearAuth, updateProfile, isPremium } = useAuthStore();
   const addToast = useUIStore((state) => state.addToast);
+  const queryClient = useQueryClient();
 
   const loginMutation = useMutation(loginApi, {
     onSuccess: async (data) => {
@@ -16,8 +17,9 @@ export const useAuth = () => {
       // Fetch profile separately after login
       try {
         const profileData = await getProfileApi();
-        if (profileData && profileData.age) {
-          updateProfile(profileData);
+        const userProfile = profileData?.profile || profileData;
+        if (userProfile && (userProfile.age || userProfile.heightCm || userProfile.weightKg || userProfile.targetKcal)) {
+          updateProfile(userProfile);
         }
       } catch (e) {
         // Profile may not exist yet for new users — that's OK
@@ -26,7 +28,8 @@ export const useAuth = () => {
       addToast(`Welcome back, ${data.user.firstName || 'User'}!`, 'success');
     },
     onError: (err) => {
-      addToast(err.response?.data?.error || err.message || 'Login failed', 'error');
+      const msg = err.response?.data?.error || err.response?.data?.errors?.[0]?.msg || err.message || 'Login failed';
+      addToast(msg, 'error');
     }
   });
 
@@ -36,18 +39,31 @@ export const useAuth = () => {
       addToast(data.message || 'OTP sent to your email!', 'success');
     },
     onError: (err) => {
-      addToast(err.response?.data?.error || 'Registration failed', 'error');
+      const msg = err.response?.data?.error || err.response?.data?.errors?.[0]?.msg || err.message || 'Registration failed';
+      addToast(msg, 'error');
     }
   });
 
   const verifyEmailMutation = useMutation(verifyEmailApi, {
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       // Backend returns { success, accessToken, user }
       setAuth(data.user, null, data.accessToken);
+
+      try {
+        const profileData = await getProfileApi();
+        const userProfile = profileData?.profile || profileData;
+        if (userProfile && (userProfile.age || userProfile.heightCm || userProfile.weightKg || userProfile.targetKcal)) {
+          updateProfile(userProfile);
+        }
+      } catch (e) {
+        // Profile may not exist yet
+      }
+
       addToast('Email verified successfully!', 'success');
     },
     onError: (err) => {
-      addToast(err.response?.data?.error || 'OTP verification failed', 'error');
+      const msg = err.response?.data?.error || err.response?.data?.errors?.[0]?.msg || err.message || 'OTP verification failed';
+      addToast(msg, 'error');
     }
   });
 
@@ -62,6 +78,12 @@ export const useAuth = () => {
     onSuccess: (data) => {
       const profileData = data.profile || data;
       updateProfile(profileData);
+      
+      queryClient.invalidateQueries(['reportsAnalytics']);
+      queryClient.invalidateQueries(['dailySummary']);
+      queryClient.invalidateQueries(['foodLog']);
+      queryClient.invalidateQueries(['dietPlan']);
+      
       addToast('Profile saved successfully', 'success');
     },
     onError: (err) => {

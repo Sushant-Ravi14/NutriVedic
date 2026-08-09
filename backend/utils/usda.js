@@ -27,7 +27,11 @@ const searchFood = async (query) => {
           proteinPer100g: getNutrient('protein'),
           fatPer100g: getNutrient('total lipid (fat)'),
           carbsPer100g: getNutrient('carbohydrate, by difference'),
-          fiberPer100g: getNutrient('fiber, total dietary')
+          fiberPer100g: getNutrient('fiber, total dietary'),
+          sodiumPer100g: getNutrient('sodium'),
+          calciumPer100g: getNutrient('calcium'),
+          ironPer100g: getNutrient('iron'),
+          vitaminCPer100g: getNutrient('vitamin c')
         },
         source: 'usda'
       };
@@ -61,7 +65,10 @@ const getNutritionByFdcId = async (fdcId, weightGrams = 100) => {
         fat: getNutrient('total lipid (fat)'),
         carbs: getNutrient('carbohydrate, by difference'),
         fiber: getNutrient('fiber, total dietary'),
-        sodium: getNutrient('sodium')
+        sodium: getNutrient('sodium'),
+        calcium: getNutrient('calcium'),
+        iron: getNutrient('iron'),
+        vitaminC: getNutrient('vitamin c')
       }
     };
   } catch (error) {

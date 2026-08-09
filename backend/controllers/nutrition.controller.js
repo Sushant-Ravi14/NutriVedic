@@ -5,15 +5,49 @@ const { calcDailyCompliance } = require('../utils/calculations');
 
 const logMeal = async (req, res, next) => {
   try {
-    const { mealType, foodName, quantity, unit, source, nutrition, date } = req.body;
+    const date = req.body.date || new Date().toISOString().split('T')[0];
     
+    // Support frontend grouped items payload
+    if (req.body.items && req.body.items.length > 0) {
+      const mealType = (req.body.slot || 'breakfast').toLowerCase();
+      const savedMeals = [];
+      
+      for (const item of req.body.items) {
+        const meal = await MealLog.create({
+          userId: req.user._id,
+          mealType: mealType === 'snacks' ? 'snack' : mealType,
+          foodName: item.name || item.foodName || 'Unknown Dish',
+          quantity: item.grams || item.quantity || 100,
+          unit: item.unit || 'grams',
+          source: req.body.source || 'manual',
+          nutrition: {
+            calories: item.calories || 0,
+            protein: item.protein || 0,
+            fat: item.fat || 0,
+            carbs: item.carbs || 0,
+            fiber: item.fiber || 0,
+            sodium: item.sodium || 0,
+            calcium: item.calcium || 0,
+            iron: item.iron || 0,
+            vitaminC: item.vitaminC || 0
+          },
+          date
+        });
+        savedMeals.push(meal);
+      }
+      
+      await updateDailySummary(req.user._id, date);
+      return res.status(201).json({ success: true, data: savedMeals[0] });
+    }
+
+    // Support flat payload fallback
+    const { mealType, foodName, quantity, unit, source, nutrition, date: flatDate } = req.body;
     const meal = await MealLog.create({
       userId: req.user._id,
-      mealType, foodName, quantity, unit, source, nutrition, date
+      mealType, foodName, quantity, unit, source, nutrition, date: flatDate || date
     });
 
     await updateDailySummary(req.user._id, date);
-
     res.status(201).json({ success: true, data: meal });
   } catch (error) {
     next(error);
@@ -25,7 +59,38 @@ const getDailySummary = async (req, res, next) => {
     const date = req.query.date || new Date().toISOString().split('T')[0];
     
     const summary = await DailySummary.findOne({ userId: req.user._id, date }).populate('mealIds');
-    const meals = await MealLog.find({ userId: req.user._id, date }).sort({ timestamp: 1 });
+    const flatMeals = await MealLog.find({ userId: req.user._id, date }).sort({ timestamp: 1 });
+
+    // Group meals by slots: Breakfast, Lunch, Snacks, Dinner
+    const slotsMap = {
+      breakfast: { slot: 'Breakfast', items: [] },
+      lunch: { slot: 'Lunch', items: [] },
+      snacks: { slot: 'Snacks', items: [] },
+      dinner: { slot: 'Dinner', items: [] }
+    };
+
+    flatMeals.forEach(meal => {
+      const type = (meal.mealType || 'breakfast').toLowerCase();
+      const slotKey = type === 'snack' ? 'snacks' : type;
+      if (slotsMap[slotKey]) {
+        slotsMap[slotKey].items.push({
+          id: meal._id,
+          name: meal.foodName,
+          calories: meal.nutrition?.calories || 0,
+          protein: meal.nutrition?.protein || 0,
+          carbs: meal.nutrition?.carbs || 0,
+          fat: meal.nutrition?.fat || 0,
+          fiber: meal.nutrition?.fiber || 0,
+          sodium: meal.nutrition?.sodium || 0,
+          calcium: meal.nutrition?.calcium || 0,
+          iron: meal.nutrition?.iron || 0,
+          vitaminC: meal.nutrition?.vitaminC || 0,
+          grams: meal.quantity || 100
+        });
+      }
+    });
+
+    const meals = Object.values(slotsMap);
 
     res.status(200).json({ success: true, summary, meals });
   } catch (error) {
@@ -176,4 +241,21 @@ async function updateDailySummary(userId, date) {
   );
 }
 
-module.exports = { logMeal, getDailySummary, getWeeklyReport, getMonthlyReport, getMealHistory, updateMeal, deleteMeal, getCompliance };
+const updateWater = async (req, res, next) => {
+  try {
+    const { glasses } = req.body;
+    const date = new Date().toISOString().split('T')[0];
+
+    const summary = await DailySummary.findOneAndUpdate(
+      { userId: req.user._id, date },
+      { waterGlasses: glasses },
+      { upsert: true, new: true }
+    );
+
+    res.status(200).json({ success: true, summary });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { logMeal, getDailySummary, getWeeklyReport, getMonthlyReport, getMealHistory, updateMeal, deleteMeal, getCompliance, updateWater };

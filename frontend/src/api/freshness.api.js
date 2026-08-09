@@ -1,7 +1,10 @@
 import client from './client';
 
 export const logFreshnessScanApi = async (freshnessData) => {
-  const res = await client.post('/api/freshness/log', freshnessData);
+  const isFormData = freshnessData instanceof FormData;
+  const res = await client.post('/api/freshness/log', freshnessData, {
+    headers: isFormData ? { 'Content-Type': 'multipart/form-data' } : undefined
+  });
   return res.data;
 };
 
