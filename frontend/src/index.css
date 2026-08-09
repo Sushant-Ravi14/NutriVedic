@@ -1,0 +1,83 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg-primary: #ffffff;
+    --color-text: #0a0a0a;
+    --color-surface: #f7f7f7;
+    --color-border: #e0e0e0;
+    --color-muted: #6b6b6b;
+    --color-label: #9e9e9e;
+    --color-positive: #2d9a4e;
+    --color-negative: #dc2626;
+  }
+
+  body {
+    background-color: var(--bg-primary);
+    color: var(--color-text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  ::selection {
+    background-color: #2563eb !important;
+    color: #ffffff !important;
+  }
+
+  ::-moz-selection {
+    background-color: #2563eb !important;
+    color: #ffffff !important;
+  }
+
+  h1 {
+    font-family: 'DM Serif Display', serif;
+    letter-spacing: -0.02em;
+  }
+
+  h2 {
+    font-family: 'DM Serif Display', serif;
+  }
+
+  h3 {
+    font-family: 'DM Serif Display', serif;
+  }
+
+  /* Accessibility focus ring */
+  *:focus-visible {
+    outline: 2px solid #0a0a0a !important;
+    outline-offset: 2px !important;
+  }
+}
+
+/* Custom Scan Line Keyframe for Barcode Camera */
+@keyframes scanLineAnimation {
+  0% {
+    transform: translateY(0%);
+  }
+  50% {
+    transform: translateY(100%);
+  }
+  100% {
+    transform: translateY(0%);
+  }
+}
+
+.animate-scan-line {
+  animation: scanLineAnimation 2s infinite ease-in-out;
+}
+
+/* Reduced Motion Override */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
