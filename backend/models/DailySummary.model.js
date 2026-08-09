@@ -14,7 +14,8 @@ const dailySummarySchema = new Schema({
   targetCalories: Number,
   caloriesRemaining: Number,
   compliancePercentage: Number,
-  status: { type: String, enum: ['under','on_track','over'] }
+  status: { type: String, enum: ['under','on_track','over'] },
+  waterGlasses: { type: Number, default: 0 }
 });
 
 dailySummarySchema.index({ userId: 1, date: 1 }, { unique: true });

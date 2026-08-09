@@ -39,7 +39,11 @@ const lookupBarcode = async (barcode) => {
 
 const searchProduct = async (query) => {
   try {
-    const response = await axios.get(`https://world.openfoodfacts.org/cgi/search.pl?search_terms=${query}&search_simple=1&action=process&json=1&countries_tags=en:india&page_size=10`);
+    const response = await axios.get(`https://world.openfoodfacts.org/cgi/search.pl?search_terms=${query}&search_simple=1&action=process&json=1&countries_tags=en:india&page_size=10`, {
+      headers: {
+        'User-Agent': 'NutriVedicApp - Web - Version 1.0 - https://nutrivedic.com'
+      }
+    });
     
     if (!response.data || !response.data.products) {
       return [];
@@ -47,18 +51,26 @@ const searchProduct = async (query) => {
 
     return response.data.products.map(product => {
       const nutriments = product.nutriments || {};
+      
+      const getEnergy = () => {
+        if (nutriments['energy-kcal_100g'] !== undefined) return Number(nutriments['energy-kcal_100g']);
+        if (nutriments['energy-kcal'] !== undefined) return Number(nutriments['energy-kcal']);
+        if (nutriments['energy_100g'] !== undefined) return Math.round(Number(nutriments['energy_100g']) / 4.184);
+        return 0;
+      };
+
       return {
         barcode: product.id,
         productName: product.product_name,
         brand: product.brands,
         nutrition: {
-          caloriesPer100g: nutriments['energy-kcal_100g'] || 0,
-          proteinPer100g: nutriments.proteins_100g || 0,
-          fatPer100g: nutriments.fat_100g || 0,
-          carbsPer100g: nutriments.carbohydrates_100g || 0
+          caloriesPer100g: getEnergy(),
+          proteinPer100g: Number(nutriments.proteins_100g || nutriments.proteins || 0),
+          fatPer100g: Number(nutriments.fat_100g || nutriments.fat || 0),
+          carbsPer100g: Number(nutriments.carbohydrates_100g || nutriments.carbohydrates || 0)
         }
       };
-    }).filter(p => p.productName);
+    }).filter(p => p.productName && p.nutrition.caloriesPer100g > 0);
   } catch (error) {
     console.error('OpenFoodFacts Search Error:', error.message);
     return [];
