@@ -98,7 +98,7 @@ export const WaterTracker = ({ glasses = 6, onToggleGlass }) => {
       </div>
 
       <span className="font-mono text-[12px] text-muted mt-2">
-        {count} of {total} glasses ({(count * 250)} ml)
+        {count} of {total} glasses ({(count * 500)} ml)
       </span>
     </Card>
   );

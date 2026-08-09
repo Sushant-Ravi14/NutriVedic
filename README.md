@@ -1,57 +1,103 @@
-# NutriVedic
+<div align="center">
+  <h1>NutriVedic</h1>
+  <p>
+    NutriVedic is an intelligent, holistic nutrition and kitchen management platform.<br/>
+    It is designed to help users track their personalized diet, manage food inventory effortlessly, and minimize food waste through advanced AI-driven tools.
+  </p>
+  <p>
+    <strong>Team Name:</strong> Code Invaders
+  </p>
+</div>
 
-NutriVedic is an intelligent, holistic nutrition and kitchen management platform designed to help users track their diet, manage food inventory, and minimize waste.
+---
 
-## Features
+## Problem Statement
+
+In modern households, tracking nutritional intake accurately and managing food inventory efficiently are significant challenges. Individuals often struggle with adhering to specific dietary requirements due to a lack of personalized guidance. Additionally, poor kitchen inventory management leads to high rates of food waste, as items expire before they are consumed. There is a strong need for an integrated platform that simplifies diet planning while actively helping users reduce waste through smart tracking.
+
+## Solution Overview
 
 - **Personalized Diet Planning**: Generate and track custom diet plans based on your health goals and metrics (BMI, BMR calculations).
 - **Smart Food & Barcode Scanning**: Easily log food items using barcode scans (via OpenFoodFacts) or AI-powered image recognition (via Google Gemini).
-- **Inventory & Freshness Tracking**: Keep track of what's in your kitchen. Get automated expiration alerts to reduce food waste.
+- **Inventory & Freshness Tracking**: Keep track of what is in your kitchen. Get automated expiration alerts to reduce food waste.
 - **Detailed Nutritional Insights**: Access accurate macro and micronutrient data powered by the USDA FoodData Central.
 - **Social & Community**: Share recipes, diet plans, and connect with friends.
 - **Premium Subscriptions**: Unlock advanced analytics, personalized recommendations, and PDF report generation.
 - **Offline Sync**: A robust sync queue system ensures your data is saved and synced when you come back online.
 
-## Project Structure
+## Presentation & Demonstration
 
-This repository is split into a monolithic architecture featuring a separate frontend and backend.
+- **Pitch Deck / PPT**: [Click here to view the presentation](#) *(Dummy Link)*
+- **Live Demonstration**: [Click here to view the live app](#) *(Dummy Link)*
 
-### Backend
+## Technology Stack
 
-The backend is built with **Node.js** and **Express.js**, using **MongoDB** (via Mongoose) as the database. 
+- **Frontend**: React.js, Vite, TailwindCSS
+- **Backend**: Node.js, Express.js
+- **Database**: MongoDB (Mongoose)
+- **Caching**: Redis
+- **Authentication**: JWT, Google OAuth (Passport.js)
+- **AI & External APIs**: Google Gemini Vision API, USDA FoodData Central, OpenFoodFacts
+- **File Storage**: Cloudinary
 
-#### Backend Directory Layout
-- `/backend/models`: Mongoose database schemas (e.g., `User`, `DietPlan`, `FoodCache`, `DailySummary`).
-- `/backend/controllers`: Business logic for handling API requests.
-- `/backend/routes`: Express API route definitions grouped by feature.
-- `/backend/middleware`: Core middleware for Authentication (JWT), Role Gating, Rate Limiting, Error Handling, and File Uploads (Multer/Cloudinary).
-- `/backend/jobs`: Background cron jobs (e.g., weekly reports, daily summaries, expiration alerts).
-- `/backend/utils`: Utility services integrating external APIs (Gemini, USDA, OpenFoodFacts), PDF generation, caching (Redis), and logging.
+## Team Members
 
-### Frontend
-*(Frontend details coming soon...)*
+1. **Swaraj Prajapati** - Team Leader
+2. **Sushant Ravi** - Team Member
 
-## Getting Started
+## Setup Instructions
 
 ### Prerequisites
 - Node.js (v16+ recommended)
 - MongoDB
 - Redis (optional, for caching)
 
-### Backend Setup
-1. Navigate to the backend directory:
+### Local Development
+
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd NutriVedic
+   ```
+
+2. **Backend Setup**
+   Navigate to the backend directory and install dependencies:
    ```bash
    cd backend
-   ```
-2. Install dependencies:
-   ```bash
    npm install
    ```
-3. Set up your `.env` file with your database URI, JWT secret, and API keys.
-4. Start the development server:
+   Create a `.env` file based on `.env.example` and add your database URI, JWT secret, and API keys. Then start the server:
    ```bash
    npm run dev
    ```
 
-## License
-MIT License
+3. **Frontend Setup**
+   Open a new terminal, navigate to the frontend directory, and install dependencies:
+   ```bash
+   cd frontend
+   npm install
+   ```
+   Start the development server:
+   ```bash
+   npm run dev
+   ```
+
+## Folder Structure
+
+This repository is split into a monolithic architecture featuring a separate frontend and backend.
+
+### Backend Structure
+- `/backend/models`: Mongoose database schemas (User, DietPlan, FoodCache, DailySummary, etc.).
+- `/backend/controllers`: Business logic for handling API requests.
+- `/backend/routes`: Express API route definitions grouped by feature.
+- `/backend/middleware`: Core middleware for Authentication, Role Gating, Rate Limiting, Error Handling, and File Uploads.
+- `/backend/jobs`: Background cron jobs (weekly reports, daily summaries, expiration alerts).
+- `/backend/utils`: Utility services integrating external APIs, PDF generation, caching, and logging.
+
+### Frontend Structure
+- `/frontend/src/api`: Axios clients and API route definitions for backend communication.
+- `/frontend/src/components`: Reusable UI components and layout wrappers (buttons, modals, navigation).
+- `/frontend/src/hooks`: Custom React hooks for data fetching, offline syncing, and PWA capabilities.
+- `/frontend/src/pages`: Main application views (Dashboard, Scanner, Food Log, Reports).
+- `/frontend/src/store`: Zustand stores for global state management (Auth, UI, Offline data).
+- `/frontend/src/utils`: Helper functions for calculations, date formatting, and image compression.
