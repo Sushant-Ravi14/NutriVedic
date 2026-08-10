@@ -3,7 +3,8 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const { sendEmail } = require('../utils/notifications');
-
+const { OAuth2Client } = require('google-auth-library');
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const generateTokens = (userId) => {
   const accessToken = jwt.sign({ id: userId }, process.env.JWT_ACCESS_SECRET, { expiresIn: process.env.JWT_ACCESS_EXPIRY });
   const refreshToken = jwt.sign({ id: userId }, process.env.JWT_REFRESH_SECRET, { expiresIn: process.env.JWT_REFRESH_EXPIRY });
@@ -59,14 +60,65 @@ const login = async (req, res, next) => {
   }
 };
 
-const googleCallback = async (req, res) => {
-  const { accessToken, refreshToken } = generateTokens(req.user._id);
-  req.user.refreshToken = refreshToken;
-  await req.user.save();
-  
-  const sameSiteMode = process.env.NODE_ENV === 'production' ? 'none' : 'lax';
-  res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: sameSiteMode, maxAge: 7 * 24 * 60 * 60 * 1000 });
-  res.redirect(`${process.env.CLIENT_URL}/auth-success?token=${accessToken}`);
+const googleAuth = async (req, res, next) => {
+  try {
+    const { token } = req.body;
+    if (!token) return res.status(400).json({ error: 'Token is required' });
+
+    let email, name, picture, googleId, given_name, family_name;
+    try {
+      const ticket = await googleClient.verifyIdToken({
+        idToken: token,
+        audience: process.env.GOOGLE_CLIENT_ID,
+      });
+      const payload = ticket.getPayload();
+      ({ sub: googleId, email, name, picture, given_name, family_name } = payload);
+    } catch (err) {
+      const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!response.ok) {
+        return res.status(400).json({ error: 'Failed to fetch user info from Google' });
+      }
+      const userInfo = await response.json();
+      ({ sub: googleId, email, name, picture, given_name, family_name } = userInfo);
+    }
+    
+    if (!email || !googleId) {
+      return res.status(400).json({ error: 'Google credential or access token is required' });
+    }
+
+    let user = await User.findOne({ $or: [{ googleId }, { email }] });
+    
+    if (user) {
+      if (!user.googleId) {
+        user.googleId = googleId;
+        await user.save();
+      }
+    } else {
+      user = await User.create({
+        email,
+        googleId,
+        firstName: given_name || name || 'Google',
+        lastName: family_name || '',
+        profilePictureUrl: picture,
+        emailVerified: true
+      });
+    }
+
+    if (user.accountStatus !== 'active') return res.status(403).json({ error: 'Account suspended/deleted' });
+
+    const { accessToken, refreshToken } = generateTokens(user._id);
+    user.refreshToken = refreshToken;
+    user.lastLogin = new Date();
+    await user.save();
+
+    const sameSiteMode = process.env.NODE_ENV === 'production' ? 'none' : 'lax';
+    res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: sameSiteMode, maxAge: 7 * 24 * 60 * 60 * 1000 });
+    res.status(200).json({ success: true, accessToken, user });
+  } catch (error) {
+    next(error);
+  }
 };
 
 const refresh = async (req, res, next) => {
@@ -148,4 +200,4 @@ const resetPassword = async (req, res, next) => {
   }
 };
 
-module.exports = { register, login, googleCallback, refresh, logout, forgotPassword, resetPassword };
+module.exports = { register, login, googleAuth, refresh, logout, forgotPassword, resetPassword };
