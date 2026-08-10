@@ -29,7 +29,7 @@
 - **Event Name**: `HackMatrix 2026 - Round 2`
 - **Team Name**: `Code Invaders`
 - **Team Leader**: **Swaraj Prajapati** (Backend Architecture, AI & Deployment)
-  - 📧 **Contact Email**: `swarajprajapati2006@gmail.com`
+  - 📧 **Contact Email**: `swaraj.prajapati.cg@gmail.com`
   - 🐙 **GitHub**: [@SwarajPrajapati2006](https://github.com/SwarajPrajapati2006)
 - **Team Member**: **Sushant Ravi** (Frontend UI/UX & React Architecture)
   - 🐙 **GitHub**: [@Sushant-Ravi14](https://github.com/Sushant-Ravi14)
