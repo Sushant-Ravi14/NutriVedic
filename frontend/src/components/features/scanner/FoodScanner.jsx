@@ -111,7 +111,7 @@ export const FoodScanner = ({ onImageSelect, isLoading }) => {
         </div>
       </div>
 
-      <div className="flex w-full gap-2">
+      <div className="grid grid-cols-2 gap-3 w-full">
         <Button
           variant="primary"
           fullWidth
@@ -127,7 +127,6 @@ export const FoodScanner = ({ onImageSelect, isLoading }) => {
           fullWidth
           onClick={() => fileInputRef.current?.click()}
           disabled={isLoading}
-          className="shrink-0"
         >
           Upload Photo
         </Button>

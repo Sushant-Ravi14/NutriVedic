@@ -3,10 +3,10 @@ import { Card } from '../../ui/Card';
 import { MacroBar } from '../../ui/MacroBar';
 
 export const MacrosCard = ({
-  protein = { current: 68, target: 95 },
-  carbs = { current: 185, target: 240 },
-  fat = { current: 46, target: 55 },
-  fiber = { current: 22, target: 30 }
+  protein = { current: 0, target: 0 },
+  carbs = { current: 0, target: 0 },
+  fat = { current: 0, target: 0 },
+  fiber = { current: 0, target: 0 }
 }) => {
   return (
     <Card className="flex flex-col justify-between">
