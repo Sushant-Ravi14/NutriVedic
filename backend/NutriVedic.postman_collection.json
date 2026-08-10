@@ -1,0 +1,598 @@
+{
+  "info": {
+    "_postman_id": "nutrivedic-api-collection-2026",
+    "name": "NutriVedic Backend API",
+    "description": "Complete Postman documentation and collection for NutriVedic AI-powered Indian Nutrition Platform.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://nutrivedic-backend.onrender.com",
+      "type": "string"
+    },
+    {
+      "key": "authToken",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "01. Health Check",
+      "item": [
+        {
+          "name": "Server Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "health"]
+            },
+            "description": "Returns system uptime and server status."
+          }
+        }
+      ]
+    },
+    {
+      "name": "02. Authentication (/api/auth)",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"Password123!\",\n  \"firstName\": \"Swaraj\",\n  \"lastName\": \"Prajapati\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "register"]
+            },
+            "description": "Registers a new user and sends an email verification OTP."
+          }
+        },
+        {
+          "name": "Verify Email OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"USER_ID_HERE\",\n  \"otp\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/verify-email",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "verify-email"]
+            },
+            "description": "Verifies 6-digit OTP sent to user email."
+          }
+        },
+        {
+          "name": "Login User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.accessToken) {",
+                  "    pm.collectionVariables.set('authToken', jsonData.accessToken);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"Password123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "Authenticates user and returns JWT accessToken + HTTP-only refreshToken cookie."
+          }
+        },
+        {
+          "name": "Google OAuth Start",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/google",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "google"]
+            },
+            "description": "Initiates Google OAuth 2.0 Single Sign-On flow."
+          }
+        },
+        {
+          "name": "Google OAuth Callback",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/google/callback",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "google", "callback"]
+            },
+            "description": "Google OAuth redirect URL."
+          }
+        },
+        {
+          "name": "Refresh Access Token",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/refresh",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "refresh"]
+            },
+            "description": "Refreshes expired access token using HTTP-only cookie."
+          }
+        },
+        {
+          "name": "Logout User",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "logout"]
+            },
+            "description": "Clears auth session and cookies."
+          }
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/forgot-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "forgot-password"]
+            },
+            "description": "Sends password reset link to user email."
+          }
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"NewPassword123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/reset-password/:resetToken",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "reset-password", ":resetToken"]
+            },
+            "description": "Resets password using token."
+          }
+        }
+      ]
+    },
+    {
+      "name": "03. User Profile (/api/user)",
+      "item": [
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/user/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "profile"]
+            },
+            "description": "Gets current user's profile and baseline metrics."
+          }
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"age\": 25,\n  \"weight\": 72,\n  \"height\": 175,\n  \"sex\": \"male\",\n  \"activityLevel\": \"active\",\n  \"goal\": \"weight_loss\",\n  \"conditions\": [\"Type 2 Diabetes\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/user/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "profile"]
+            },
+            "description": "Updates physical profile and automatically triggers personalized diet plan regeneration."
+          }
+        },
+        {
+          "name": "Add Weight Log",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"weight\": 71.5\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/user/weight",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "weight"]
+            },
+            "description": "Logs daily weight entry for progress tracking."
+          }
+        },
+        {
+          "name": "Get Preferences",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/user/preferences",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "preferences"]
+            },
+            "description": "Gets dietary preferences (Veg, Jain, Keto, etc.)."
+          }
+        },
+        {
+          "name": "Update Preferences",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dietaryType\": \"Vegetarian\",\n  \"allergies\": [\"Peanuts\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/user/preferences",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "preferences"]
+            },
+            "description": "Updates dietary preferences."
+          }
+        },
+        {
+          "name": "Delete Account",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/user/account",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "account"]
+            },
+            "description": "Deletes user account and associated data."
+          }
+        }
+      ]
+    },
+    {
+      "name": "04. AI Food Scan (/api/food)",
+      "item": [
+        {
+          "name": "Scan Food Photo (Gemini AI)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "image",
+                  "type": "file",
+                  "src": ""
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/food/scan",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "food", "scan"]
+            },
+            "description": "Uploads food image to Gemini AI and returns dish recognition, macro breakdown, and Ayurvedic insights."
+          }
+        },
+        {
+          "name": "Get Scan History",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/food/history",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "food", "history"]
+            },
+            "description": "Gets past scanned food items."
+          }
+        },
+        {
+          "name": "Submit Scan Feedback",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 5,\n  \"correction\": \"Paneer Butter Masala\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/food/scan/:scanId/feedback",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "food", "scan", ":scanId", "feedback"]
+            },
+            "description": "Submits feedback for AI accuracy training."
+          }
+        },
+        {
+          "name": "Get Trending Foods",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/food/trending",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "food", "trending"]
+            },
+            "description": "Gets popular scanned food items."
+          }
+        }
+      ]
+    },
+    {
+      "name": "05. Barcode Scan (/api/barcode)",
+      "item": [
+        {
+          "name": "Scan Barcode",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"barcode\": \"8901030383847\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/barcode/scan",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "barcode", "scan"]
+            },
+            "description": "Fetches product info from OpenFoodFacts / USDA database by barcode."
+          }
+        },
+        {
+          "name": "Get Barcode Info",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/barcode/:barcode",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "barcode", ":barcode"]
+            },
+            "description": "Gets cached barcode details."
+          }
+        }
+      ]
+    },
+    {
+      "name": "06. Nutrition & Meal Logging (/api/nutrition)",
+      "item": [
+        {
+          "name": "Log Meal",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mealType\": \"lunch\",\n  \"foodName\": \"Dal Tadka with Roti\",\n  \"calories\": 450,\n  \"protein\": 18,\n  \"carbs\": 65,\n  \"fat\": 12\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/nutrition/log",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "nutrition", "log"]
+            },
+            "description": "Logs a meal entry."
+          }
+        },
+        {
+          "name": "Get Daily Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/nutrition/daily",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "nutrition", "daily"]
+            },
+            "description": "Gets today's calorie, macro, and water intake."
+          }
+        },
+        {
+          "name": "Update Water Intake",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 250\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/nutrition/water",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "nutrition", "water"]
+            },
+            "description": "Adds water intake (in ml)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "07. Diet Plan (/api/diet)",
+      "item": [
+        {
+          "name": "Generate AI Diet Plan",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/diet/generate",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "diet", "generate"]
+            },
+            "description": "Generates a personalized 7-day Ayurvedic diet plan based on profile."
+          }
+        },
+        {
+          "name": "Get Current Diet Plan",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/diet/current",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "diet", "current"]
+            },
+            "description": "Fetches active weekly diet plan."
+          }
+        }
+      ]
+    },
+    {
+      "name": "08. Produce Freshness Detector (/api/freshness)",
+      "item": [
+        {
+          "name": "Scan Produce Freshness (AI)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "image",
+                  "type": "file",
+                  "src": ""
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/freshness/log",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "freshness", "log"]
+            },
+            "description": "Scans raw fruit/vegetable photos for decay, shelf-life estimation, and storage tips."
+          }
+        },
+        {
+          "name": "Get Inventory",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/freshness/inventory",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "freshness", "inventory"]
+            },
+            "description": "Lists stored fruits and vegetables in fridge inventory."
+          }
+        }
+      ]
+    },
+    {
+      "name": "09. Analytics (/api/analytics)",
+      "item": [
+        {
+          "name": "Get Analytics Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/analytics/dashboard",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "analytics", "dashboard"]
+            },
+            "description": "Gets dashboard overview stats."
+          }
+        }
+      ]
+    }
+  ]
+}
