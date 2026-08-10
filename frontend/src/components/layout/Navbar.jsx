@@ -16,21 +16,6 @@ export const Navbar = ({ isLanding = false }) => {
           Nutri<span className="italic text-muted font-normal">Vedic</span>
         </Link>
 
-        {/* Desktop Links */}
-        {isLanding && (
-          <nav className="hidden md:flex items-center gap-8">
-            <a href="#features" className="font-sans text-sm text-muted hover:text-black transition-colors">
-              Features
-            </a>
-            <a href="#ayurveda" className="font-sans text-sm text-muted hover:text-black transition-colors">
-              Ayurvedic AI
-            </a>
-            <a href="#pricing" className="font-sans text-sm text-muted hover:text-black transition-colors">
-              Pricing
-            </a>
-          </nav>
-        )}
-
         {/* Right CTA Actions */}
         <div className="hidden md:flex items-center gap-3">
           {isAuthenticated ? (
@@ -68,24 +53,6 @@ export const Navbar = ({ isLanding = false }) => {
       {/* Mobile Slide-down Menu */}
       {mobileMenuOpen && (
         <div className="md:hidden bg-white border-b border-border p-4 flex flex-col gap-3">
-          {isLanding && (
-            <>
-              <a
-                href="#features"
-                onClick={() => setMobileMenuOpen(false)}
-                className="font-sans text-sm text-black py-2 border-b border-border"
-              >
-                Features
-              </a>
-              <a
-                href="#ayurveda"
-                onClick={() => setMobileMenuOpen(false)}
-                className="font-sans text-sm text-black py-2 border-b border-border"
-              >
-                Ayurvedic AI
-              </a>
-            </>
-          )}
           {isAuthenticated ? (
             <Button variant="primary" fullWidth onClick={() => { setMobileMenuOpen(false); navigate('/dashboard'); }}>
               Go to Dashboard

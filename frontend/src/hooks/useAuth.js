@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '../store/authStore';
-import { loginApi, registerApi, verifyEmailApi, logoutApi } from '../api/auth.api';
+import { loginApi, registerApi, logoutApi } from '../api/auth.api';
 import { getProfileApi, saveProfileApi } from '../api/user.api';
 import { useUIStore } from '../store/uiStore';
 
@@ -11,19 +11,17 @@ export const useAuth = () => {
 
   const loginMutation = useMutation(loginApi, {
     onSuccess: async (data) => {
-      // Backend returns { success, accessToken, user }
-      setAuth(data.user, null, data.accessToken);
-
-      // Fetch profile separately after login
+      useAuthStore.getState().setAccessToken(data.accessToken);
+      let finalProfile = null;
       try {
         const profileData = await getProfileApi();
         const userProfile = profileData?.profile || profileData;
         if (userProfile && (userProfile.age || userProfile.heightCm || userProfile.weightKg || userProfile.targetKcal)) {
-          updateProfile(userProfile);
+          finalProfile = userProfile;
         }
-      } catch (e) {
-        // Profile may not exist yet for new users — that's OK
-      }
+      } catch (e) {}
+
+      setAuth(data.user, finalProfile, data.accessToken);
 
       addToast(`Welcome back, ${data.user.firstName || 'User'}!`, 'success');
     },
@@ -34,9 +32,19 @@ export const useAuth = () => {
   });
 
   const registerMutation = useMutation(registerApi, {
-    onSuccess: (data) => {
-      // Backend returns { success, message, userId } — OTP step needed
-      addToast(data.message || 'OTP sent to your email!', 'success');
+    onSuccess: async (data) => {
+      useAuthStore.getState().setAccessToken(data.accessToken);
+      let finalProfile = null;
+      try {
+        const profileData = await getProfileApi();
+        const userProfile = profileData?.profile || profileData;
+        if (userProfile && (userProfile.age || userProfile.heightCm || userProfile.weightKg || userProfile.targetKcal)) {
+          finalProfile = userProfile;
+        }
+      } catch (e) {}
+
+      setAuth(data.user, finalProfile, data.accessToken);
+      addToast(`Account created, welcome ${data.user.firstName || 'User'}!`, 'success');
     },
     onError: (err) => {
       const msg = err.response?.data?.error || err.response?.data?.errors?.[0]?.msg || err.message || 'Registration failed';
@@ -44,28 +52,6 @@ export const useAuth = () => {
     }
   });
 
-  const verifyEmailMutation = useMutation(verifyEmailApi, {
-    onSuccess: async (data) => {
-      // Backend returns { success, accessToken, user }
-      setAuth(data.user, null, data.accessToken);
-
-      try {
-        const profileData = await getProfileApi();
-        const userProfile = profileData?.profile || profileData;
-        if (userProfile && (userProfile.age || userProfile.heightCm || userProfile.weightKg || userProfile.targetKcal)) {
-          updateProfile(userProfile);
-        }
-      } catch (e) {
-        // Profile may not exist yet
-      }
-
-      addToast('Email verified successfully!', 'success');
-    },
-    onError: (err) => {
-      const msg = err.response?.data?.error || err.response?.data?.errors?.[0]?.msg || err.message || 'OTP verification failed';
-      addToast(msg, 'error');
-    }
-  });
 
   const logoutMutation = useMutation(logoutApi, {
     onSettled: () => {
@@ -98,9 +84,8 @@ export const useAuth = () => {
     isPremium: isPremium(),
     login: loginMutation.mutateAsync,
     register: registerMutation.mutateAsync,
-    verifyEmail: verifyEmailMutation.mutateAsync,
     logout: logoutMutation.mutateAsync,
     saveProfile: saveProfileMutation.mutateAsync,
-    isLoading: loginMutation.isLoading || registerMutation.isLoading || verifyEmailMutation.isLoading
+    isLoading: loginMutation.isLoading || registerMutation.isLoading
   };
 };

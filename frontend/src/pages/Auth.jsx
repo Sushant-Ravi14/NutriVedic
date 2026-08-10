@@ -17,14 +17,10 @@ export const Auth = () => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
 
-  // OTP verification state
-  const [showOtp, setShowOtp] = useState(false);
-  const [otp, setOtp] = useState('');
-  const [pendingUserId, setPendingUserId] = useState(null);
 
   const [authError, setAuthError] = useState('');
 
-  const { login, register, verifyEmail, isLoading } = useAuth();
+  const { login, register, isLoading } = useAuth();
   const navigate = useNavigate();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const profile = useAuthStore((state) => state.profile);
@@ -64,12 +60,12 @@ export const Auth = () => {
           navigate('/dashboard');
         }
       } else {
-        const res = await register({ email, password, firstName, lastName });
-        // Backend returns { success, message, userId, devOtp } — show OTP input
-        if (res?.userId) {
-          setPendingUserId(res.userId);
-          if (res?.devOtp) setOtp(res.devOtp);
-          setShowOtp(true);
+        await register({ email, password, firstName, lastName });
+        const currentProfile = useAuthStore.getState().profile;
+        if (!currentProfile) {
+          navigate('/onboarding');
+        } else {
+          navigate('/dashboard');
         }
       }
     } catch (err) {
@@ -78,17 +74,6 @@ export const Auth = () => {
     }
   };
 
-  const handleVerifyOtp = async (e) => {
-    e.preventDefault();
-    setAuthError('');
-    try {
-      await verifyEmail({ userId: pendingUserId, otp });
-      navigate('/onboarding');
-    } catch (err) {
-      const msg = err.response?.data?.error || err.response?.data?.errors?.[0]?.msg || err.message || 'Verification failed';
-      setAuthError(msg);
-    }
-  };
 
   const handleGoogleLogin = () => {
     window.location.href = googleAuthUrl();
@@ -113,40 +98,7 @@ export const Auth = () => {
             {authError}
           </div>
         )}
-        {showOtp ? (
-          /* OTP Verification Step */
-          <form onSubmit={handleVerifyOtp} className="flex flex-col gap-4">
-            <div className="text-center mb-2">
-              <h2 className="font-serif text-xl font-bold text-black">Verify Your Email</h2>
-              <p className="font-sans text-xs text-muted mt-1">
-                Enter the 6-digit OTP sent to {email}
-              </p>
-            </div>
-
-            <Input
-              label="OTP CODE"
-              type="text"
-              placeholder="123456"
-              value={otp}
-              onChange={(e) => setOtp(e.target.value)}
-              required
-              maxLength={6}
-            />
-
-            <Button type="submit" variant="primary" fullWidth disabled={isLoading}>
-              {isLoading ? 'Verifying...' : 'Verify & Continue'}
-            </Button>
-
-            <button
-              type="button"
-              onClick={() => { setShowOtp(false); setPendingUserId(null); setOtp(''); }}
-              className="font-mono text-[11px] text-muted hover:text-black transition-colors text-center cursor-pointer"
-            >
-              ← Back to Sign Up
-            </button>
-          </form>
-        ) : (
-          <>
+        <>
             {/* Tab Toggle */}
             <div className="flex border-b border-border mb-6">
               <button
@@ -259,7 +211,6 @@ export const Auth = () => {
               Google Single Sign-On
             </Button>
           </>
-        )}
       </div>
     </div>
   );

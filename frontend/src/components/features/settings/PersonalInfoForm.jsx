@@ -90,10 +90,10 @@ export const PersonalInfoForm = ({ initialData = {}, onSave }) => {
             <span className="text-muted block">Status:</span>
             {(() => {
               const bmiVal = formData.weight / Math.pow(formData.height / 100, 2);
-              if (bmiVal < 18.5) return <span className="font-semibold text-yellow-600">Underweight ⚠️</span>;
-              if (bmiVal < 25) return <span className="font-semibold text-green-600">Normal / Healthy ✅</span>;
-              if (bmiVal < 30) return <span className="font-semibold text-orange-600">Overweight ⚠️</span>;
-              return <span className="font-semibold text-red-600">Obese 🚨</span>;
+              if (bmiVal < 18.5) return <span className="font-semibold text-yellow-600">Underweight</span>;
+              if (bmiVal < 25) return <span className="font-semibold text-green-600">Normal / Healthy</span>;
+              if (bmiVal < 30) return <span className="font-semibold text-orange-600">Overweight</span>;
+              return <span className="font-semibold text-red-600">Obese</span>;
             })()}
           </div>
         </div>

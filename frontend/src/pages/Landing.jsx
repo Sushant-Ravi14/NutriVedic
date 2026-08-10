@@ -21,11 +21,6 @@ export const Landing = () => {
       num: '03',
       title: 'Freshness Detection',
       desc: 'TensorFlow.js computer vision scanner evaluates fruit & vegetable ripeness and predicts remaining shelf life.'
-    },
-    {
-      num: '04',
-      title: 'PWA Offline First',
-      desc: 'Install directly on Android or iOS. Log meals offline without internet connection and auto-sync when back online.'
     }
   ];
 
@@ -64,10 +59,10 @@ export const Landing = () => {
       <section id="features" className="w-full border-t border-border mt-auto">
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-6 flex items-center justify-between border-b border-border">
           <h2 className="font-serif text-[28px] text-black font-bold">Everything in one place.</h2>
-          <span className="font-mono text-[11px] uppercase tracking-[2px] text-label">04 FEATURES</span>
+          <span className="font-mono text-[11px] uppercase tracking-[2px] text-label">03 FEATURES</span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 w-full border-b border-border">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 w-full border-b border-border">
           {features.map((feat, idx) => (
             <div
               key={feat.num}
