@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
 import { useAuth } from '../hooks/useAuth';
-import { googleAuthUrl } from '../api/auth.api';
+import { useGoogleLogin } from '@react-oauth/google';
 import { useAuthStore } from '../store/authStore';
 
 export const Auth = () => {
@@ -20,21 +20,27 @@ export const Auth = () => {
 
   const [authError, setAuthError] = useState('');
 
-  const { login, register, isLoading } = useAuth();
+  const { login, googleLogin, register, isLoading } = useAuth();
   const navigate = useNavigate();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const profile = useAuthStore((state) => state.profile);
 
-  // Handle auth-success redirect from Google OAuth
-  useEffect(() => {
-    const token = searchParams.get('token');
-    if (token) {
-      const { setAuth } = useAuthStore.getState();
-      setAuth(null, null, token);
-      // The client interceptor will attach the token; now fetch user info
-      navigate('/dashboard');
-    }
-  }, [searchParams, navigate]);
+  const loginWithGoogle = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      try {
+        await googleLogin(tokenResponse.access_token);
+        const currentProfile = useAuthStore.getState().profile;
+        if (!currentProfile) {
+          navigate('/onboarding');
+        } else {
+          navigate('/dashboard');
+        }
+      } catch (error) {
+        setAuthError('Google authentication failed');
+      }
+    },
+    onError: () => setAuthError('Google login failed')
+  });
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -76,7 +82,7 @@ export const Auth = () => {
 
 
   const handleGoogleLogin = () => {
-    window.location.href = googleAuthUrl();
+    loginWithGoogle();
   };
 
   return (
