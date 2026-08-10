@@ -65,10 +65,10 @@ export const Sidebar = () => {
   const handleLogout = async () => {
     try {
       await logout();
-      navigate('/login');
+      navigate('/');
     } catch (e) {
       addToast('Logged out', 'info');
-      navigate('/login');
+      navigate('/');
     }
   };
 

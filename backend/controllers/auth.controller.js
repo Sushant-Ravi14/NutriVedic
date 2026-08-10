@@ -19,36 +19,7 @@ const register = async (req, res, next) => {
     const salt = await bcrypt.genSalt(12);
     const passwordHash = await bcrypt.hash(password, salt);
 
-    const emailOtp = Math.floor(100000 + Math.random() * 900000).toString();
-    const emailOtpExpiry = new Date(Date.now() + 15 * 60 * 1000); // 15 mins
-
-    user = await User.create({ email, passwordHash, firstName, lastName, emailOtp, emailOtpExpiry });
-
-    await sendEmail(email, 'Verify your NutriVedic Email', `Your OTP is: ${emailOtp}`);
-
-    res.status(201).json({
-      success: true,
-      message: 'OTP sent to email',
-      userId: user._id,
-      ...(process.env.NODE_ENV === 'development' && { devOtp: emailOtp })
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-const verifyEmail = async (req, res, next) => {
-  try {
-    const { userId, otp } = req.body;
-    const user = await User.findById(userId);
-    
-    if (!user || user.emailOtp !== otp || new Date() > user.emailOtpExpiry) {
-      return res.status(400).json({ success: false, error: 'Invalid or expired OTP' });
-    }
-
-    user.emailVerified = true;
-    user.emailOtp = undefined;
-    user.emailOtpExpiry = undefined;
+    user = await User.create({ email, passwordHash, firstName, lastName, emailVerified: true });
 
     const { accessToken, refreshToken } = generateTokens(user._id);
     user.refreshToken = refreshToken;
@@ -56,11 +27,13 @@ const verifyEmail = async (req, res, next) => {
 
     const sameSiteMode = process.env.NODE_ENV === 'production' ? 'strict' : 'lax';
     res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: sameSiteMode, maxAge: 7 * 24 * 60 * 60 * 1000 });
-    res.status(200).json({ success: true, accessToken, user });
+    
+    res.status(201).json({ success: true, accessToken, user });
   } catch (error) {
     next(error);
   }
 };
+
 
 const login = async (req, res, next) => {
   try {
@@ -174,4 +147,4 @@ const resetPassword = async (req, res, next) => {
   }
 };
 
-module.exports = { register, verifyEmail, login, googleCallback, refresh, logout, forgotPassword, resetPassword };
+module.exports = { register, login, googleCallback, refresh, logout, forgotPassword, resetPassword };

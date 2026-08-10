@@ -10,10 +10,6 @@ export const registerApi = async (userData) => {
   return res.data;
 };
 
-export const verifyEmailApi = async ({ userId, otp }) => {
-  const res = await client.post('/api/auth/verify-email', { userId, otp });
-  return res.data;
-};
 
 export const logoutApi = async () => {
   const res = await client.post('/api/auth/logout');
