@@ -157,6 +157,19 @@ Open `http://localhost:5173` in your browser.
 
 ---
 
+## 👥 Team Members & Roles — Code Invaders
+
+<div align="center">
+
+| Member Name | Role | Core Focus & Responsibilities | GitHub Profile |
+| :--- | :--- | :--- | :---: |
+| **Swaraj Prajapati** | 👑 **Team Leader** | Backend Architecture, API Development, Database Schemas, Gemini AI Integration & Cloud Deployment | [@SwarajPrajapati2006](https://github.com/SwarajPrajapati2006) |
+| **Sushant Ravi** | 🎨 **Team Member** | Frontend UI/UX Design, React Component Library, Framer Motion Animations & User Flows | [@Sushant-Ravi14](https://github.com/Sushant-Ravi14) |
+
+</div>
+
+---
+
 ## 🖼️ How to Add High-Quality App Images to this README
 
 To make your GitHub repository look ultra-premium:
