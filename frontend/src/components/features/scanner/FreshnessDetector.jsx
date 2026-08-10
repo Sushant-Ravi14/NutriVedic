@@ -151,15 +151,15 @@ export const FreshnessDetector = ({ onAddToInventory }) => {
       </div>
 
       {/* Action Buttons & Inputs */}
-      <div className="flex gap-2 w-full">
+      <div className={`grid ${capturedSnapshot ? 'grid-cols-3' : 'grid-cols-2'} gap-3 w-full`}>
         {capturedSnapshot && (
           <Button
             variant="secondary"
+            fullWidth
             onClick={() => {
               setCapturedSnapshot(null);
               setResult(null);
             }}
-            className="shrink-0"
           >
             Retake
           </Button>
@@ -179,7 +179,6 @@ export const FreshnessDetector = ({ onAddToInventory }) => {
           fullWidth
           onClick={() => fileInputRef.current?.click()}
           disabled={isAnalyzing}
-          className="shrink-0"
         >
           Upload Photo
         </Button>

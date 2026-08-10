@@ -11,6 +11,7 @@ import { useAuthStore } from '../store/authStore';
 import { useLogsByDate, useUpdateWater } from '../hooks/useFoodLog';
 import { useCurrentPlan } from '../hooks/useDietPlan';
 import { formatDate, formatISODate } from '../utils/formatters';
+import { calculateMacros } from '../utils/calculations';
 
 export const Dashboard = () => {
   const user = useAuthStore((state) => state.user);
@@ -21,15 +22,20 @@ export const Dashboard = () => {
   const { data: currentPlan } = useCurrentPlan();
   const updateWaterMutation = useUpdateWater();
 
+  const targetKcal = foodLog?.summary?.targetCalories || profile?.targetKcal || profile?.targetCalories || 2000;
+  const calculatedMacros = calculateMacros(targetKcal);
+
   const summary = {
-    consumedKcal: foodLog?.summary?.totalCalories || 0,
-    targetKcal: foodLog?.summary?.targetCalories || profile?.targetKcal || profile?.targetCalories || 2000,
-    protein: foodLog?.summary?.totalProtein || 0,
-    targetProtein: profile?.proteinTargetG || 95,
-    carbs: foodLog?.summary?.totalCarbs || 0,
-    targetCarbs: profile?.carbTargetG || 240,
-    fat: foodLog?.summary?.totalFat || 0,
-    targetFat: profile?.fatTargetG || 55,
+    consumedKcal: Math.round(foodLog?.summary?.totalCalories || 0),
+    targetKcal,
+    protein: Math.round(foodLog?.summary?.totalProtein || 0),
+    targetProtein: profile?.proteinTargetG || calculatedMacros.protein,
+    carbs: Math.round(foodLog?.summary?.totalCarbs || 0),
+    targetCarbs: profile?.carbTargetG || calculatedMacros.carbs,
+    fat: Math.round(foodLog?.summary?.totalFat || 0),
+    targetFat: profile?.fatTargetG || calculatedMacros.fat,
+    fiber: Math.round(foodLog?.summary?.totalFiber || 0),
+    targetFiber: profile?.fiberTargetG || calculatedMacros.fiber,
     waterGlasses: foodLog?.summary?.waterGlasses || 0,
     streak: foodLog?.summary?.streak || 0
   };
@@ -60,7 +66,7 @@ export const Dashboard = () => {
           protein={{ current: summary.protein, target: summary.targetProtein }}
           carbs={{ current: summary.carbs, target: summary.targetCarbs }}
           fat={{ current: summary.fat, target: summary.targetFat }}
-          fiber={{ current: 22, target: 30 }}
+          fiber={{ current: summary.fiber, target: summary.targetFiber }}
         />
 
         <div className="flex flex-col gap-6">
