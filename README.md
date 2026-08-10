@@ -4,7 +4,7 @@
   <!-- 🎨 HERO APP BANNER PLACEHOLDER            -->
   <!-- ========================================== -->
   <!-- Replace YOUR_HERO_BANNER_IMAGE_URL with your banner link -->
-  <img src="YOUR_HERO_BANNER_IMAGE_URL" alt="NutriVedic Hero Banner" width="100%" style="border-radius: 12px; margin-bottom: 20px;" />
+  <img src="docs/images/banner.png" alt="NutriVedic Hero Banner" width="100%" style="border-radius: 12px; margin-bottom: 20px;" />
 
   # 🌿 NutriVedic
   ### **AI-Powered Holistic Indian Nutrition & Smart Kitchen Management Platform**
@@ -95,25 +95,21 @@ NutriVedic’s flagship $9/month AI Assistant bridges the gap between healthy ea
     <tr>
       <td width="50%" align="center">
         <b>📱 Dashboard & Daily Macro Tracking</b><br/><br/>
-        <!-- Replace YOUR_DASHBOARD_IMAGE_URL with your image link -->
-        <img src="YOUR_DASHBOARD_IMAGE_URL" alt="NutriVedic Dashboard Preview" width="100%" style="border-radius: 8px;" />
+        <img src="docs/images/dashboard.png" alt="NutriVedic Dashboard Preview" width="100%" style="border-radius: 8px;" />
       </td>
       <td width="50%" align="center">
         <b>📸 AI Vision Scanner & Freshness Detector</b><br/><br/>
-        <!-- Replace YOUR_SCANNER_IMAGE_URL with your image link -->
-        <img src="YOUR_SCANNER_IMAGE_URL" alt="NutriVedic AI Scanner Preview" width="100%" style="border-radius: 8px;" />
+        <img src="docs/images/scanner.png" alt="NutriVedic AI Scanner Preview" width="100%" style="border-radius: 8px;" />
       </td>
     </tr>
     <tr>
       <td width="50%" align="center">
         <br/><b>🥗 Personalised Ayurvedic Diet Plan</b><br/><br/>
-        <!-- Replace YOUR_DIETPLAN_IMAGE_URL with your image link -->
-        <img src="YOUR_DIETPLAN_IMAGE_URL" alt="Diet Plan Preview" width="100%" style="border-radius: 8px;" />
+        <img src="docs/images/diet_plans.png" alt="Diet Plan Preview" width="100%" style="border-radius: 8px;" />
       </td>
       <td width="50%" align="center">
-        <br/><b>⚡ 4-Step Personalized Onboarding</b><br/><br/>
-        <!-- Replace YOUR_ONBOARDING_IMAGE_URL with your image link -->
-        <img src="YOUR_ONBOARDING_IMAGE_URL" alt="Onboarding Setup Preview" width="100%" style="border-radius: 8px;" />
+        <br/><b>📊 Health Reports & Analytics</b><br/><br/>
+        <img src="docs/images/reports.png" alt="Reports Preview" width="100%" style="border-radius: 8px;" />
       </td>
     </tr>
   </table>
